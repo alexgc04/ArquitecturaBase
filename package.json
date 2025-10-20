@@ -1,0 +1,27 @@
+{
+  "name": "arquitecturabase",
+  "version": "1.0.0",
+  "description": "Arquitectura base del proyecto procesos 2025-26",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "testW": "node_modules\\.bin\\jasmine-node servidor",
+    "test": "jasmine-node servidor"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexgc04/ArquitecturaBase.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexgc04/ArquitecturaBase/issues"
+  },
+  "homepage": "https://github.com/alexgc04/ArquitecturaBase#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "jasmine-node": "^3.0.0"
+  }
+}

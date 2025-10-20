@@ -9,9 +9,9 @@ function Sistema(){
     }
 
     // Devuelve true si existe un usuario con el nick indicado, false en caso contrario
-    this.usuarioActivo=function(nick){ 
-        if (this.usuarios.hasOwnProperty(nick)){
-            return true; 
+    this.usuarioActivo=function(nick){
+        if(this.usuarios[nick]){
+            return true;
         }
         return false;
     }
@@ -20,8 +20,10 @@ function Sistema(){
         return Object.keys(this.usuarios).length;
     }
 
-    this.eliminarUsuario=function(nick){ 
-        delete this.usuarios[nick]; 
+    this.eliminarUsuario=function(nick){
+        if(this.usuarios[nick]){
+            delete this.usuarios[nick];
+        }
     }
 } 
 
