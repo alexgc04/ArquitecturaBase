@@ -42,6 +42,8 @@ app.get("/usuarioActivo/:nick", function(request, response) {
 });
 console.log('Ruta /usuarioActivo/:nick registrada');
 
+//let sistema = new modelo.Sistema({test: true});   NO SE QUE HACE ESTO (pruebas)
+
 // REST: numero de usuarios
 app.get("/numeroUsuarios", function(request, response) {
     const payload = { num: sistema.numeroUsuarios() };

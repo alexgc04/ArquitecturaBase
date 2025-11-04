@@ -1,4 +1,5 @@
-function Sistema(){
+function Sistema(test){
+
     this.usuarios={};
 
     this.agregarUsuario=function(nick){
@@ -38,6 +39,15 @@ function Sistema(){
         return Object.keys(this.usuarios).length;
     }
 
+    // MIRAR ESTA LINEA DESPUES COMO LO APLICO (para las pruebas con base de datos)
+    /*
+    if (!test.test){
+        this.cad.conectar(function(db){
+            console.log("Conectado a la base de datos");
+            // Código de conexión a la base de datos
+        });
+    }
+    */
 }
 
 function Usuario(nick){

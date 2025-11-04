@@ -3,15 +3,18 @@ const modelo = require("./modelo.js");
 
 describe('El sistema...', function() {
   let sistema;
-    beforeEach(function() {
-    sistema=new modelo.Sistema();
-    });
+  beforeEach(function() {
+   sistema = new modelo.Sistema({test: true});
+  });
 
 it('inicialmente no hay usuarios', function() { 
   expect(sistema.numeroUsuarios()).toEqual(0); 
 }); 
 
 it('agregarUsuario', function() {
+    /*sistema.agregarUsuario('pepe');
+    let usuario = sistema.agregarUsuario('pepe');*/     // agregar usuario del profesor pero sin jasmine
+
     const usuario = sistema.agregarUsuario('pepe');
     expect(usuario).toEqual({nick: 'pepe'});
     expect(sistema.numeroUsuarios()).toEqual(1);

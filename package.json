@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "testW": "node_modules\\.bin\\jasmine-node servidor",
-    "test": "jasmine-node servidor"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -19,7 +19,8 @@
   },
   "homepage": "https://github.com/alexgc04/ArquitecturaBase#readme",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "jest": "^30.2.0"
   },
   "devDependencies": {
     "jasmine-node": "^3.0.0"

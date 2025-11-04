@@ -1,5 +1,6 @@
-function ControlWeb(){
-    this.mostrarAgregarUsuario = function(){
+function ControlWeb() {
+    
+    this.mostrarAgregarUsuario = function () {
         let cadena = '<div id="mAU" class="form-group">';
         cadena += '  <label for="nick">Name:</label>';
         cadena += '  <input type="text" class="form-control" id="nick">';
@@ -7,9 +8,9 @@ function ControlWeb(){
         cadena += '</div>';
 
         if (!$("#mAU").length) $("#au").append(cadena);
-        $("#btnAU").on("click", function(){
+        $("#btnAU").on("click", function () {
             let nick = $("#nick").val();
-            if (typeof rest === 'undefined'){
+            if (typeof rest === 'undefined') {
                 window.rest = new ClienteRest();
             }
             rest.agregarUsuario(nick);
@@ -17,8 +18,37 @@ function ControlWeb(){
         });
     }
 
+    this.mostrarMensaje = function(msg) {
+        $("#au").html(`<div class="alert alert-info">${msg}</div>`);
+        this.mostrarSalir();
+    };
+
+    this.comprobarSesion = function () {
+        let nick = $.cookie("nick");
+        if (nick) {
+            cw.mostrarMensaje("Bienvenido al sistema, " + nick);
+        }
+        else {
+            cw.mostrarAgregarUsuario();
+        }
+    }
+
+    this.salir=function(){
+        $.removeCookie("nick");
+        location.reload();
+    }
+
+    // Dibuja un botón de salir para limpiar la sesión manualmente
+    this.mostrarSalir = function(){
+        if (document.getElementById('btnSalir')) return;
+        const btn = '<button id="btnSalir" class="btn btn-sm btn-outline-dark mt-2">Salir</button>';
+        $("#au").prepend(btn);
+        $("#btnSalir").on('click', ()=> this.salir());
+    }
+
+
     // Mostrar panel con el resto de operaciones (6.3 exercises)
-    this.mostrarPanelOps = function(){
+    this.mostrarPanelOps = function () {
         if (document.getElementById('opsPanel')) return; // ya creado
 
         const ops =
@@ -46,48 +76,48 @@ function ControlWeb(){
 
         // Handlers
         $("#btnObtenerUsuarios").on('click', () => {
-            $.getJSON('/obtenerUsuarios', function(data){
+            $.getJSON('/obtenerUsuarios', function (data) {
                 const keys = Object.keys(data || {});
-                $("#opsResult").text('Usuarios ('+keys.length+'):\n'+keys.join('\n'));
-            }).fail(function(){
+                $("#opsResult").text('Usuarios (' + keys.length + '):\n' + keys.join('\n'));
+            }).fail(function () {
                 $("#opsResult").text('Error al obtener usuarios');
             });
         });
 
         $("#btnNumeroUsuarios").on('click', () => {
-            $.getJSON('/numeroUsuarios', function(data){
-                if (data && data.num !== undefined){
+            $.getJSON('/numeroUsuarios', function (data) {
+                if (data && data.num !== undefined) {
                     $("#opsResult").text('Número de usuarios: ' + data.num);
                 } else {
                     $("#opsResult").text('Respuesta inesperada: ' + JSON.stringify(data));
                 }
-            }).fail(function(){
+            }).fail(function () {
                 $("#opsResult").text('Error al obtener número de usuarios');
             });
         });
 
         $("#btnUsuarioActivo").on('click', () => {
             const nick = $("#nickCheck").val();
-            if (!nick){
+            if (!nick) {
                 $("#opsResult").text('Introduce un nick a comprobar');
                 return;
             }
-            $.getJSON('/usuarioActivo/'+encodeURIComponent(nick), function(data){
-                $("#opsResult").text('usuarioActivo("'+nick+'") -> ' + JSON.stringify(data));
-            }).fail(function(){
+            $.getJSON('/usuarioActivo/' + encodeURIComponent(nick), function (data) {
+                $("#opsResult").text('usuarioActivo("' + nick + '") -> ' + JSON.stringify(data));
+            }).fail(function () {
                 $("#opsResult").text('Error al comprobar usuario activo');
             });
         });
 
         $("#btnEliminarUsuario").on('click', () => {
             const nick = $("#nickEliminar").val();
-            if (!nick){
+            if (!nick) {
                 $("#opsResult").text('Introduce un nick a eliminar');
                 return;
             }
-            $.getJSON('/eliminarUsuario/'+encodeURIComponent(nick), function(data){
-                $("#opsResult").text('eliminarUsuario("'+nick+'") -> ' + JSON.stringify(data));
-            }).fail(function(){
+            $.getJSON('/eliminarUsuario/' + encodeURIComponent(nick), function (data) {
+                $("#opsResult").text('eliminarUsuario("' + nick + '") -> ' + JSON.stringify(data));
+            }).fail(function () {
                 $("#opsResult").text('Error al eliminar usuario');
             });
         });
