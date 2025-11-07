@@ -3,6 +3,9 @@ const path = require("path");
 const express = require('express');
 const app = express();
 const modelo = require("./servidor/modelo.js");
+const passport=require("passport");
+const cookieSession=require("cookie-session");
+require("./servidor/passport-setup.js");
 
 const PORT = process.env.PORT || 3000;
 app.use(express.static(__dirname + "/"));

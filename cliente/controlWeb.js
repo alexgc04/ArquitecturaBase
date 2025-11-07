@@ -1,11 +1,17 @@
 function ControlWeb() {
     
     this.mostrarAgregarUsuario = function () {
-        let cadena = '<div id="mAU" class="form-group">';
-        cadena += '  <label for="nick">Name:</label>';
-        cadena += '  <input type="text" class="form-control" id="nick">';
-        cadena += '  <button id="btnAU" type="submit" class="btn btn-primary" style="margin-top:8px;">Submit</button>';
-        cadena += '</div>';
+        $('#bnv').remove(); 
+        $('#mAU').remove(); 
+        let cadena='<div id="mAU">'; 
+        cadena = cadena + '<div class="card"><div class="card-body">';
+        cadena = cadena +'<div class="form-group">'; 
+        cadena = cadena + '<label for="nick">Nick:</label>';
+        cadena = cadena + '<p><input type="text" class="form-control" id="nick" placeholder="introduce un nick"></p>'; 
+        cadena = cadena + '<button id="btnAU" type="submit" class="btn btn-primary">Submit</button>'; 
+        cadena = cadena + '<div><a href="/auth/google"><img src="./cliente/img/btn_google_signin_light_focus_web@2x.png" style="height:40px;"></a></div>'; 
+        cadena = cadena + '</div>'; 
+        cadena = cadena + '</div></div></div>';
 
         if (!$("#mAU").length) $("#au").append(cadena);
         $("#btnAU").on("click", function () {
