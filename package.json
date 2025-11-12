@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "dev": "node --env-file .env index.js",
     "testW": "node_modules\\.bin\\jasmine-node servidor",
     "test": "jest"
   },
@@ -19,10 +20,19 @@
   },
   "homepage": "https://github.com/alexgc04/ArquitecturaBase#readme",
   "dependencies": {
+    "dotenv": "^16.4.5",
+    "bcryptjs": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "cookie-session": "^2.1.1",
     "express": "^5.1.0",
-    "jest": "^30.2.0"
+    "mongodb": "^4.4.0",
+    "nodemailer": "^7.0.10",
+    "passport": "^0.5.3",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-google-one-tap": "^1.0.1",
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
-    "jasmine-node": "^3.0.0"
+    "jasmine-node": "^1.16.0"
   }
 }

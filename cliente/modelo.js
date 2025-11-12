@@ -25,6 +25,45 @@ function Sistema(){
             delete this.usuarios[nick];
         }
     }
+
+    this.registrarUsuario=function(obj,callback){ 
+        let modelo=this; 
+        if (!obj.nick){ 
+            obj.nick=obj.email; 
+        } this.cad.buscarUsuario(obj,function(usr){ 
+            if (!usr){ 
+                //el usuario no existe, luego lo puedo registrar 
+                obj.key=Date.now().toString(); 
+                obj.confirmada=false; 
+                modelo.cad.insertarUsuario(obj,function(res){ 
+                    callback(res); 
+                }); 
+                correo.enviarEmail(obj.email,obj.key,"Confirmar cuenta"); 
+            } 
+            else 
+                { 
+                    callback({"email":-1}); 
+                } 
+            }); 
+    }
+
+    this.confirmarUsuario=function(obj,callback){ 
+        let modelo=this;
+        this.cad.buscarUsuario({"email":obj.email,"confirmada":false,"key":obj.key}
+            ,function(usr){ 
+            if (usr){ 
+                usr.confirmada=true; 
+                modelo.cad.modificarUsuario(usr,function(res){ 
+                    callback({"email":res.email}); 
+                }); 
+            } 
+            else 
+                { 
+                    callback({"email":-1}); 
+                }
+        }); 
+    }
+
 } 
 
 function Usuario(nick){

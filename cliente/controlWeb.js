@@ -24,24 +24,70 @@ function ControlWeb() {
         });
     }
 
+    this.registrarUsuario=function(email,password){ 
+        $.ajax({ 
+            type:'POST', 
+            url:'/registrarUsuario', 
+            data: JSON.stringify({"email":email,"password":password}), 
+            success:function(data){ 
+                if (data.nick != -1) {
+                    console.log("Usuario " + data.nick + " ha sido registrado");
+                    // Mostrar mensaje y formulario de login
+                    cw.mostrarMensaje('Registro completado. Por favor inicie sesión.');
+                    cw.mostrarLogin();
+                } else {
+                    console.log("El nick está ocupado");
+                    cw.mostrarMensaje('Error: ya existe un usuario con ese email.');
+                }
+            }, 
+            error:function(xhr, textStatus, errorThrown){ console.log("Status: " + textStatus); console.log("Error: " + errorThrown); }, contentType:'application/json' }); }
+
+    // Mostrar formulario de inicio de sesión
+    this.mostrarLogin = function() {
+        $("#fmLogin").remove();
+        $("#registro").load("./cliente/login.html", function() {
+            $("#btnLogin").on("click", function(e) {
+                e.preventDefault();
+                const email = $("#emailLogin").val();
+                const pwd = $("#pwdLogin").val();
+                if (!email || !pwd) {
+                    cw.mostrarMensaje('Rellene email y contraseña.');
+                    return;
+                }
+                if (typeof rest === 'undefined') {
+                    window.rest = new ClienteRest();
+                }
+                rest.loginUsuario({ email: email, password: pwd });
+                $("#fmLogin").remove();
+            });
+        });
+    }
+
     this.mostrarMensaje = function(msg) {
         $("#au").html(`<div class="alert alert-info">${msg}</div>`);
         this.mostrarSalir();
     };
 
     this.comprobarSesion = function () {
-        let nick = $.cookie("nick");
+        // Sprint 2: comprobar almacenamiento local del estado (localStorage)
+        let nickLS = undefined;
+        try { nickLS = localStorage.getItem('nick'); } catch(_) {}
+        const nickCookie = $.cookie("nick");
+        const nick = nickLS || nickCookie;
         if (nick) {
             cw.mostrarMensaje("Bienvenido al sistema, " + nick);
         }
         else {
-            cw.mostrarAgregarUsuario();
+            cw.mostrarRegistro();
         }
     }
 
-    this.salir=function(){
-        $.removeCookie("nick");
-        location.reload();
+    this.salir=function(){ 
+        // Delegar en REST para cerrar sesión de servidor y limpiar estado local
+        if (typeof rest === 'undefined') {
+            window.rest = new ClienteRest();
+        }
+        rest.cerrarSesion();
     }
 
     // Dibuja un botón de salir para limpiar la sesión manualmente
@@ -51,7 +97,23 @@ function ControlWeb() {
         $("#au").prepend(btn);
         $("#btnSalir").on('click', ()=> this.salir());
     }
-
+    
+    this.mostrarRegistro=function(){ 
+        $("#fmRegistro").remove(); 
+        $("#registro").load("./cliente/registro.html",function(){ 
+            $("#btnRegistro").on("click",function(e){ 
+                e.preventDefault(); 
+                let email=$("#email").val(); 
+                let pwd=$("#pwd").val(); 
+                if (email && pwd){ 
+                    // Delegar en el método que hace el POST
+                    cw.registrarUsuario(email, pwd);
+                } else {
+                    cw.mostrarMensaje('Rellene email y contraseña.');
+                }
+            }); 
+        }); 
+    }
 
     // Mostrar panel con el resto de operaciones (6.3 exercises)
     this.mostrarPanelOps = function () {
