@@ -56,24 +56,26 @@ function CAD(){
             });
         }
 
-    this.buscarUsuario=function(obj,callback){ 
-        buscar(this.usuarios,obj,callback); 
+    this.buscarUsuario=function(criterio,callback){
+        buscar(this.usuarios,criterio,callback);
     }
+
+    function buscar(coleccion,criterio,callback){
+        let col=coleccion;
+        coleccion.find(criterio).toArray(function(error,usuarios){
+            if (usuarios.length==0){
+                callback(undefined);
+            }
+            else{
+                callback(usuarios[0]);
+            }
+        });
+    }
+
 
     this.insertarUsuario=function(usuario,callback){ 
         insertar(this.usuarios,usuario,callback); 
     }
-
-    function buscar(coleccion,criterio,callback){
-		coleccion.find(criterio).toArray(function(error,usuarios){
-			if (usuarios.length==0){
-				callback(undefined);
-			}
-			else{
-				callback(usuarios[0]);
-			}
-		});
-	}
 
     function insertar(coleccion,elemento,callback){
 		coleccion.insertOne(elemento,function(err,result){

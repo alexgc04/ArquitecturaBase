@@ -1,16 +1,45 @@
+require('dotenv').config();
 const fs = require("fs");
-const path = require("path");
-try { require('dotenv').config(); } catch(_) {} // Ensure dotenv is loaded at startup
+const path = require('path');
+// Log uncaught errors to help debugging (prevents silent exits)
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught exception:', err && err.stack ? err.stack : err);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled rejection:', reason);
+});
 const express = require('express');
-const app = express();
-const modelo = require("./servidor/modelo.js");
-const passport=require("passport");
-
-const cookieSession=require("cookie-session");
-require("./servidor/passport-setup.js");
 const bodyParser=require("body-parser");
-const PORT = process.env.PORT || 3000;
+const app = express();
+
+const passport=require("passport");
+const cookieSession=require("cookie-session");
 const LocalStrategy = require('passport-local').Strategy;
+require("./servidor/passport-setup.js");
+const modelo = require("./servidor/modelo.js");
+let sistema = new modelo.Sistema();
+
+const PORT = process.env.PORT || 3000;
+app.use(express.static(__dirname + "/"));
+// Parse URL-encoded bodies (needed for Google One Tap POSTs)
+app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended:true})); 
+app.use(bodyParser.json());
+
+app.use(cookieSession({ name: 'Sistema', keys: ['key1', 'key2'] }));
+// Compatibilidad cookie-session + passport: añadir métodos no-op para regenerate/save
+app.use((req, res, next) => {
+    if (req.session && typeof req.session.regenerate !== 'function') {
+        req.session.regenerate = (cb) => cb && cb();
+    }
+    if (req.session && typeof req.session.save !== 'function') {
+        req.session.save = (cb) => cb && cb();
+    }
+    next();
+});
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Middleware para asegurar rutas REST (Sprint 2 - asegurar API)
 const haIniciado=function(request,response,next){ 
     if (request.user){ 
@@ -24,48 +53,55 @@ const haIniciado=function(request,response,next){
 };
 
 
-app.use(express.static(__dirname + "/"));
-// Parse URL-encoded bodies (needed for Google One Tap POSTs)
-app.use(express.urlencoded({ extended: true }));
-
-app.use(bodyParser.urlencoded({extended:true})); 
-app.use(bodyParser.json());
-
-let sistema = new modelo.Sistema();
-
 // Registrar LocalStrategy ahora que 'sistema' existe
 passport.use(new LocalStrategy({ usernameField: 'email', passwordField: 'password' },
     function(email, password, done) {
         sistema.loginUsuario({ email: email, password: password },
             function(user) {
                 // si loginUsuario devuelve {email:-1} indicar fallo
-                if (user && user.email && user.email !== -1) return done(null, user);
+                if (!user || user.email === -1) return done(null, user);
                 return done(null, false);
             }
         );
     }
 ));
 
+app.get("/auth/google",passport.authenticate('google', { scope: ['profile','email'] }))
+app.get('/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/fallo' }), 
+    function(req, res) { 
+        res.redirect('/good'); 
+});
+// Ruta para recibir el callback de Google One Tap
+app.post('/oneTap/callback', 
+    passport.authenticate('google-one-tap', { failureRedirect: '/fallo' }), 
+    function(req, res) {
+        // Autenticación correcta: reutilizamos la ruta /good
+        res.redirect('/good');
+    }
+);
+
+app.get("/good", function(request,response){
+    let email=request.user.emails[0].value;
+    sistema.usuarioGoogle({"email":email},function(obj){
+    response.cookie('nick',obj.email);
+    // Marcar usuario activo también para flujo Google / One Tap
+    if (!sistema.usuarioActivo(obj.email).res){
+        sistema.agregarUsuario(obj.email);
+    }
+    response.redirect('/');
+    });
+});
+
+app.get("/fallo",function(request,response){ 
+    response.send({nick:"nook"}) 
+});
+
 // Middleware de logging (opcional)
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
     next();
 });
-
-app.use(cookieSession({ name: 'Sistema', keys: ['key1', 'key2'] }));
-// Compatibilidad cookie-session + passport: añadir métodos no-op para regenerate/save
-app.use((req, res, next) => {
-    if (req.session && typeof req.session.regenerate !== 'function') {
-        req.session.regenerate = (cb) => cb && cb();
-    }
-    if (req.session && typeof req.session.save !== 'function') {
-        req.session.save = (cb) => cb && cb();
-    }
-    next();
-});
-
-app.use(passport.initialize());
-app.use(passport.session());
 
 // Página principal -> servir el cliente
 app.get("/", function(request, response) {
@@ -82,16 +118,6 @@ app.get("/confirmarUsuario/:email/:key",function(request,response){
     }); 
 });
 
-// Nota: rutas REST se definen más abajo (con protección)
-
-// Página principal
-app.get("/auth/google",passport.authenticate('google', { scope: ['profile','email'] }))
-
-app.get('/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/fallo' }), 
-    function(req, res) { 
-        res.redirect('/good'); 
-});
 
 app.get("/cerrarSesion",function(request,response){ 
     // Passport 0.7 logout con callback
@@ -101,15 +127,6 @@ app.get("/cerrarSesion",function(request,response){
         response.send({ok:true});
     });
 });
-
-// Ruta para recibir el callback de Google One Tap
-app.post('/oneTap/callback', 
-    passport.authenticate('google-one-tap', { failureRedirect: '/fallo' }), 
-    function(req, res) {
-        // Autenticación correcta: reutilizamos la ruta /good
-        res.redirect('/good');
-    }
-);
 
 app.post("/registrarUsuario",function(request,response){ 
     sistema.registrarUsuario(request.body,function(res){ 
@@ -135,36 +152,11 @@ app.post("/loginUsuario", function(request, response) {
 });
 */
 
-app.post('/loginUsuario', function(req,res,next){
-    passport.authenticate("local", function(err,user){
-        if (err) return next(err);
-        if (!user) return res.status(401).send({nick:-1});
-        req.logIn(user,function(err2){
-            if (err2) return next(err2);
-            res.cookie('nick',user.email);
-            return res.send({nick:user.email});
-        });
-    })(req,res,next);
+app.post('/loginUsuario',passport.authenticate("local",{failureRedirect:"/fallo",successRedirect: "/ok"}));
+
+app.get("/ok",function(req,res){
+    res.send({nick:req.user.email})
 });
-
-app.get("/ok",function(request,response){ 
-    if (!request.user) return response.status(401).send({nick:-1});
-    response.send({nick:request.user.email}); 
-});
-
-
-app.get("/good", function(request,response){ 
-    let email=request.user.emails[0].value; 
-    sistema.usuarioGoogle({"email":email},function(obj){ 
-        response.cookie('nick',obj.email); 
-        response.redirect('/'); 
-    }); 
-});
-
-app.get("/fallo",function(request,response){ 
-    response.send({nick:"nook"}) 
-});
-
 
 
 // REST: agregar usuario (protegido)

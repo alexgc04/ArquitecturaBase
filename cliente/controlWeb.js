@@ -43,7 +43,10 @@ function ControlWeb() {
             error:function(xhr, textStatus, errorThrown){ console.log("Status: " + textStatus); console.log("Error: " + errorThrown); }, contentType:'application/json' }); }
 
     // Mostrar formulario de inicio de sesión
-    this.mostrarLogin = function() {
+    this.mostrarLogin=function(){
+        if ($.cookie('nick')){
+            return true;
+        }
         $("#fmLogin").remove();
         $("#registro").load("./cliente/login.html", function() {
             $("#btnLogin").on("click", function(e) {
@@ -64,8 +67,20 @@ function ControlWeb() {
     }
 
     this.mostrarMensaje = function(msg) {
-        $("#au").html(`<div class="alert alert-info">${msg}</div>`);
-        this.mostrarSalir();
+                // Mostrar un bonito panel de bienvenida centrado
+                const html = `
+                    <div class="d-flex justify-content-center mt-4">
+                        <div class="card w-75 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h4 class="card-title mb-2">Bienvenido</h4>
+                                </div>
+                                <p class="card-text lead text-muted mb-0">${msg}</p>
+                            </div>
+                        </div>
+                    </div>`;
+                $("#au").html(html);
+                this.mostrarSalir();
     };
 
     this.comprobarSesion = function () {
@@ -93,8 +108,14 @@ function ControlWeb() {
     // Dibuja un botón de salir para limpiar la sesión manualmente
     this.mostrarSalir = function(){
         if (document.getElementById('btnSalir')) return;
-        const btn = '<button id="btnSalir" class="btn btn-sm btn-outline-dark mt-2">Salir</button>';
-        $("#au").prepend(btn);
+        // Colocar el botón de salir en la esquina superior izquierda del contenedor de mensajes
+        const btn = '<div id="bnv" class="mb-2"><button id="btnSalir" class="btn btn-sm btn-outline-dark">Salir</button></div>';
+        // Si hay un área de mensajes, insertar el botón antes del primer child para mostrarlo encima
+        if ($('#au').children().length) {
+            $('#au').prepend(btn);
+        } else {
+            $('#au').html(btn);
+        }
         $("#btnSalir").on('click', ()=> this.salir());
     }
     

@@ -117,32 +117,33 @@ function ClienteRest() {
 	}
 
 	// Inicio de sesión local
-	this.loginUsuario=function(usr){
+	this.loginUsuario=function(email,password){
 		$.ajax({
 			type:'POST',
 			url:'/loginUsuario',
-			data: JSON.stringify(usr),
+			data: JSON.stringify({"email":email,"password":password}),
 			success:function(data){
-				// Éxito solo si nick existe y no es -1
-				if (data.nick && data.nick !== -1){
-					$.cookie("nick",data.nick);
-					cw.mostrarMensaje("Bienvenido al sistema, "+data.nick);
-				} else {
-					$("#msg").html('<div class="alert alert-danger">Credenciales incorrectas o cuenta no confirmada.</div>');
+				if (data.nick!=-1){
+				console.log("Usuario "+data.nick+" ha sido registrado");	
+				$.cookie("nick",data.nick);
+				cw.limpiar();
+				cw.mostrarMensaje("Bienvenido al sistema,"+data.nick);
+				//cw.mostrarLogin();
+				}
+				else{
+					console.log("No se pudo iniciar sesión");
+					cw.mostrarLogin();
+					//cw.mostrarMensajeLogin("No se pudo iniciarsesión");
 				}
 			},
 			error:function(xhr, textStatus, errorThrown){
-				// Si el servidor devuelve 401, mostrar mensaje de error uniforme
-				if (xhr.status===401){
-					$("#msg").html('<div class="alert alert-danger">'+ (xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error en autenticación.') +'</div>');
-				} else {
-					console.log("Status: " + textStatus);
-					console.log("Error: " + errorThrown);
-				}
+				console.log("Status: " + textStatus);
+				console.log("Error: " + errorThrown);
 			},
 			contentType:'application/json'
 		});
 	}
+
 
 	this.cerrarSesion=function(){
 		$.getJSON("/cerrarSesion",function(){

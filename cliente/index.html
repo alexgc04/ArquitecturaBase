@@ -22,6 +22,8 @@
         data-login_uri="http://localhost:3000/oneTap/callback"
         data-skip_prompt_cookie="nick"
     ></div>
+    <!-- Optional sign in button (will fallback if One Tap cannot auto prompt) -->
+    <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
 
     <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
         <!-- Brand/logo -->
@@ -62,7 +64,7 @@
 
         $("#navRegistro").on("click",function(e){e.preventDefault(); cw.mostrarRegistro();});
         $("#navLogin").on("click",function(e){e.preventDefault(); cw.mostrarLogin();});
-    // No mostrar panel de operaciones; tras iniciar sesión solo debe aparecer el mensaje de bienvenida
+        // No mostrar panel de operaciones; tras iniciar sesión solo debe aparecer el mensaje de bienvenida
     </script>
 </body>
 </html>

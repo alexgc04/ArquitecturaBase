@@ -26,26 +26,30 @@ function Sistema(){
         }
     }
 
-    this.registrarUsuario=function(obj,callback){ 
-        let modelo=this; 
-        if (!obj.nick){ 
-            obj.nick=obj.email; 
-        } this.cad.buscarUsuario(obj,function(usr){ 
-            if (!usr){ 
-                //el usuario no existe, luego lo puedo registrar 
-                obj.key=Date.now().toString(); 
-                obj.confirmada=false; 
-                modelo.cad.insertarUsuario(obj,function(res){ 
-                    callback(res); 
-                }); 
-                correo.enviarEmail(obj.email,obj.key,"Confirmar cuenta"); 
-            } 
-            else 
-                { 
-                    callback({"email":-1}); 
-                } 
-            }); 
+    this.registrarUsuario=function(obj,callback){
+        let modelo=this;
+        if (!obj.nick){
+            obj.nick=obj.email;
+        }
+        this.cad.buscarUsuario({"email":obj.email},async function(usr){
+            if (!usr){
+                let key=Date.now().toString();
+                obj.confirmada=false;
+                obj.key=key;
+                const hash = await bcrypt.hash(obj.password, 10);
+                obj.password=hash;
+                modelo.cad.insertarUsuario(obj,function(res){
+                    callback(res);
+                });
+                correo.enviarEmail(obj.email,key,"Confirmar cuenta");
+            }
+            else
+            {
+                callback({"email":-1});
+            }
+        });
     }
+
 
     this.confirmarUsuario=function(obj,callback){ 
         let modelo=this;
@@ -62,6 +66,28 @@ function Sistema(){
                     callback({"email":-1}); 
                 }
         }); 
+    }
+
+    this.loginUsuario=function(obj,callback){
+        let modelo=this;
+        this.cad.buscarUsuario({"email":obj.email,"confirmada":true},function(usr){
+            if (!usr)
+            {
+                callback({"email":-1});
+                return -1;
+            }
+            else{
+                bcrypt.compare(obj.password, usr.password, function(err,result) {
+                if (result) {
+                callback(usr);
+                modelo.agregarUsuario(usr);
+                }
+                else{
+                callback({"email":-1});
+                }
+                });
+            }
+        });
     }
 
 } 
