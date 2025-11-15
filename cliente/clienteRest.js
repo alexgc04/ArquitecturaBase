@@ -146,9 +146,22 @@ function ClienteRest() {
 
 
 	this.cerrarSesion=function(){
-		$.getJSON("/cerrarSesion",function(){
-			console.log("Sesión cerrada");
-			$.removeCookie("nick");
-		});
+		$.getJSON("/cerrarSesion")
+			.done(function(){
+				console.log("Sesión cerrada");
+				$.removeCookie("nick");
+				try {
+					if (typeof cw !== 'undefined') {
+						cw.limpiar();
+						cw.mostrarRegistro();
+						$('#msg').html('<div class="alert alert-success">Sesión cerrada.</div>');
+					}
+				} catch(_){ }
+			})
+			.fail(function(){
+				console.log('Error cerrando sesión en servidor');
+				$.removeCookie('nick');
+				try { if (typeof cw !== 'undefined') { cw.limpiar(); cw.mostrarRegistro(); $('#msg').html('<div class="alert alert-danger">Error cerrando sesión en servidor.</div>'); } } catch(_){ }
+			});
 	}
 }

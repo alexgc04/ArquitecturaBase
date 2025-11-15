@@ -13,7 +13,7 @@ const bodyParser=require("body-parser");
 const app = express();
 
 const passport=require("passport");
-const cookieSession=require("cookie-session");
+const session = require('express-session');
 const LocalStrategy = require('passport-local').Strategy;
 require("./servidor/passport-setup.js");
 const modelo = require("./servidor/modelo.js");
@@ -26,17 +26,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.urlencoded({extended:true})); 
 app.use(bodyParser.json());
 
-app.use(cookieSession({ name: 'Sistema', keys: ['key1', 'key2'] }));
-// Compatibilidad cookie-session + passport: añadir métodos no-op para regenerate/save
-app.use((req, res, next) => {
-    if (req.session && typeof req.session.regenerate !== 'function') {
-        req.session.regenerate = (cb) => cb && cb();
+// Configurar sesión con express-session (más compatible con Passport)
+app.set('trust proxy', 1);
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'sistema-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000
     }
-    if (req.session && typeof req.session.save !== 'function') {
-        req.session.save = (cb) => cb && cb();
-    }
-    next();
-});
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -59,8 +60,12 @@ passport.use(new LocalStrategy({ usernameField: 'email', passwordField: 'passwor
         sistema.loginUsuario({ email: email, password: password },
             function(user) {
                 // si loginUsuario devuelve {email:-1} indicar fallo
-                if (!user || user.email === -1) return done(null, user);
-                return done(null, false);
+                    // si loginUsuario devuelve un usuario válido, autenticarlo
+                    if (user && user.email && user.email !== -1) {
+                        return done(null, user);
+                    }
+                    // credenciales inválidas
+                    return done(null, false);
             }
         );
     }
@@ -84,7 +89,9 @@ app.post('/oneTap/callback',
 app.get("/good", function(request,response){
     let email=request.user.emails[0].value;
     sistema.usuarioGoogle({"email":email},function(obj){
+    // Guardar cookie visible para cliente y también almacenar en la sesión
     response.cookie('nick',obj.email);
+    try { request.session.nick = obj.email; } catch(_) {}
     // Marcar usuario activo también para flujo Google / One Tap
     if (!sistema.usuarioActivo(obj.email).res){
         sistema.agregarUsuario(obj.email);
@@ -94,7 +101,8 @@ app.get("/good", function(request,response){
 });
 
 app.get("/fallo",function(request,response){ 
-    response.send({nick:"nook"}) 
+    // Respuesta uniforme para fallos de autenticación (cliente espera {nick: -1})
+    response.send({ nick: -1 });
 });
 
 // Middleware de logging (opcional)
@@ -112,7 +120,8 @@ app.get("/confirmarUsuario/:email/:key",function(request,response){
     let email=request.params.email; 
     let key=request.params.key; sistema.confirmarUsuario({"email":email,"key":key},function(usr){ 
         if (usr.email!=-1){ 
-            response.cookie('nick',usr.email); 
+            response.cookie('nick',usr.email);
+            try { request.session.nick = usr.email; } catch(_) {}
         } 
         response.redirect('/'); 
     }); 
@@ -123,6 +132,7 @@ app.get("/cerrarSesion",function(request,response){
     // Passport 0.7 logout con callback
     request.logout(function(){
         // limpiar cookie de sesión (cookie-session la invalidará al no tener datos)
+        try { request.session = null; } catch(_) {}
         response.clearCookie('nick');
         response.send({ok:true});
     });
@@ -138,24 +148,31 @@ app.post("/registrarUsuario",function(request,response){
     }); 
 });
 
-// Endpoint para inicio de sesión
-/*
-app.post("/loginUsuario", function(request, response) {
-    sistema.loginUsuario(request.body, function(res) {
-        if (res && res.email && res.email != -1) {
-            response.cookie('nick', res.email);
-            response.send({ nick: res.email });
+// Endpoint para inicio de sesión (AJAX-friendly)
+app.post('/loginUsuario', function(request, response) {
+    sistema.loginUsuario(request.body, function(user) {
+        if (user && user.email && user.email !== -1) {
+            // Crear sesión Passport para este usuario
+            request.logIn(user, function(err) {
+                if (err) {
+                    console.error('Error logIn:', err);
+                    return response.send({ nick: -1 });
+                }
+                try { request.session.nick = user.email; } catch(_) {}
+                response.cookie('nick', user.email);
+                return response.send({ nick: user.email });
+            });
         } else {
-            response.send({ nick: -1 });
+            return response.send({ nick: -1 });
         }
     });
 });
-*/
-
-app.post('/loginUsuario',passport.authenticate("local",{failureRedirect:"/fallo",successRedirect: "/ok"}));
 
 app.get("/ok",function(req,res){
-    res.send({nick:req.user.email})
+    // Endpoint que devuelve el usuario autenticado (si existe), o {nick: -1}
+    const email = (req.user && req.user.email) || (req.session && req.session.nick);
+    if (email) return res.send({ nick: email });
+    return res.send({ nick: -1 });
 });
 
 
