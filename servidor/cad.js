@@ -5,13 +5,24 @@ function CAD(){
 
     const mongo=require("mongodb").MongoClient; 
     const ObjectId=require("mongodb").ObjectId;
+    const { accessMONGOURI } = require('./gestorVariables.js');
 
     this.usuarios;
+    this.logs;
 
     // Conectar a Mongo Atlas
     this.conectar=async function(callback){
         let cad=this;
-        const uri = process.env.MONGO_URI;
+        let uri = process.env.MONGO_URI;
+
+        if (!uri) {
+            try {
+                uri = await accessMONGOURI();
+            } catch (e) {
+                console.error("No se pudo recuperar MONGO_URI de Secret Manager ni de .env");
+            }
+        }
+
         const dbName = process.env.MONGO_DB || 'sistema';
 
         if (!uri || typeof uri !== 'string' || uri.trim() === '') {
@@ -33,6 +44,7 @@ function CAD(){
 
         const database=client.db(dbName);
         cad.usuarios=database.collection("usuarios");
+        cad.logs=database.collection("logs");
         // Índice único por email para prevenir duplicados
         try { await cad.usuarios.createIndex({ email: 1 }, { unique: true }); } catch (e) {}
         if (typeof callback === 'function') {
@@ -88,6 +100,37 @@ function CAD(){
 			}
 		});
 	}
+
+    this.insertarLog=function(registro,callback){
+        insertar(this.logs,registro,callback);
+    }
+
+    this.obtenerLogs=function(callback){
+        this.logs.find({}).toArray(function(err,result){
+            if(err){
+                callback([]);
+            }
+            else{
+                callback(result);
+            }
+        });
+    }
+
+    this.actualizarUsuario=function(usuario,callback){
+        actualizar(this.usuarios,usuario,callback);
+    }
+
+    function actualizar(coleccion,elemento,callback){
+        coleccion.findOneAndUpdate({email:elemento.email},{$set:elemento},{returnDocument:"after"},function(err,doc){
+            if(err){
+                throw err;
+            }
+            else{
+                console.log("Elemento actualizado");
+                callback(doc.value);
+            }
+        });
+    }
 
     this.actualizarUsuario=function(obj,callback){ 
         actualizar(this.usuarios,obj,callback); 

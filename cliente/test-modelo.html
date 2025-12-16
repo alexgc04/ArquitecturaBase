@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Modelo Partidas</title>
+    <script src="./modelo.js"></script>
+</head>
+<body>
+    <h1>Test Modelo Partidas</h1>
+    <div id="resultados"></div>
+
+    <script>
+        function log(msg) {
+            console.log(msg);
+            document.getElementById("resultados").innerHTML += "<p>" + msg + "</p>";
+        }
+
+        log("Iniciando tests...");
+
+        // 1. Inicializar sistema en modo test
+        var sistema = new Sistema(true);
+        log("Sistema inicializado.");
+
+        // 2. Crear usuarios
+        var usr1 = new Usuario("Pepe"); // El constructor espera nick
+        var usr2 = new Usuario("Luis");
+        
+        sistema.agregarUsuario(usr1.nick);
+        sistema.agregarUsuario(usr2.nick);
+        log("Usuarios agregados: Pepe, Luis");
+
+        // 3. Crear partida
+        log("Pepe crea una partida...");
+        var codigo = sistema.crearPartida(usr1.nick); // Usamos nick como email/id en este test simple
+        
+        if (codigo != -1) {
+            log("Partida creada con código: " + codigo);
+        } else {
+            log("ERROR: No se pudo crear la partida");
+        }
+
+        // 4. Listar partidas disponibles
+        var disponibles = sistema.obtenerPartidasDisponibles();
+        log("Partidas disponibles: " + JSON.stringify(disponibles));
+
+        if (disponibles.length > 0 && disponibles[0].codigo === codigo) {
+            log("OK: La partida aparece en disponibles.");
+        } else {
+            log("ERROR: La partida no aparece en disponibles.");
+        }
+
+        // 5. Unir otro usuario
+        log("Luis intenta unirse a la partida " + codigo + "...");
+        var unido = sistema.unirAPartida(usr2.nick, codigo);
+
+        if (unido != -1) {
+            log("Luis se ha unido correctamente.");
+        } else {
+            log("ERROR: Luis no pudo unirse.");
+        }
+
+        // 6. Verificar estado de la partida (debería estar llena si maxJug=2)
+        var partida = sistema.partidas[codigo];
+        log("Jugadores en la partida: " + JSON.stringify(partida.jugadores));
+
+        disponibles = sistema.obtenerPartidasDisponibles();
+        log("Partidas disponibles ahora: " + JSON.stringify(disponibles));
+
+        if (disponibles.length === 0) {
+            log("OK: La partida ya no está disponible (está llena).");
+        } else {
+            log("NOTA: La partida sigue disponible (maxJug > 2).");
+        }
+
+    </script>
+</body>
+</html>

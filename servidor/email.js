@@ -1,5 +1,7 @@
 const nodemailer = require('nodemailer');
-try { require('dotenv').config(); } catch(_) {}
+//const gv = require('./gestorVariables.js');
+
+try { require('dotenv').config(); } catch (_) { }
 
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const MAIL_USER = process.env.MAIL_USER;
@@ -8,21 +10,21 @@ const MAIL_ENABLED = process.env.MAIL_ENABLED !== 'false'; // por defecto habili
 
 let transporter;
 //f (MAIL_ENABLED && MAIL_USER && MAIL_PASS) {
-    transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user: MAIL_USER, pass: MAIL_PASS }
-    });
+transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: MAIL_USER, pass: MAIL_PASS }
+});
 ////} else {
- //   console.warn('[email.js] Envío de correo deshabilitado o credenciales ausentes. Define MAIL_USER/MAIL_PASS y asegúrate de que MAIL_ENABLED!=false si quieres enviar emails.');
+//   console.warn('[email.js] Envío de correo deshabilitado o credenciales ausentes. Define MAIL_USER/MAIL_PASS y asegúrate de que MAIL_ENABLED!=false si quieres enviar emails.');
 //}
 
-module.exports.enviarEmail = async function(direccion, key, men) {
-   /* if (!MAIL_ENABLED) {
-        return { skipped: true, reason: 'Mail disabled (MAIL_ENABLED=false)' };
-    }
-    if (!transporter) {
-        return { skipped: true, reason: 'Missing mail credentials' };
-    }*/
+module.exports.enviarEmail = async function (direccion, key, men) {
+    /* if (!MAIL_ENABLED) {
+         return { skipped: true, reason: 'Mail disabled (MAIL_ENABLED=false)' };
+     }
+     if (!transporter) {
+         return { skipped: true, reason: 'Missing mail credentials' };
+     }*/
     const url = `${BASE_URL}/confirmarUsuario/${direccion}/${key}`;
     try {
         const result = await transporter.sendMail({
@@ -40,4 +42,17 @@ module.exports.enviarEmail = async function(direccion, key, men) {
         return { ok: false, error: err && err.message ? err.message : String(err) };
     }
 };
+
+/*
+module.exports.obtenerOptions = gv.obtenerOptions;
+
+gv.obtenerOptions(function (res) {
+    const options = res;
+    transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: options
+    });
+});*/
+
+
 

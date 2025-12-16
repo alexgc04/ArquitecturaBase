@@ -42,5 +42,48 @@ it('obtener usuarios', function() {
     expect(sistema.usuarioActivo('juan').nick).toBe(false);
   });
 
+  describe("Pruebas de las partidas", function() {
+    let usr2;
+    let usr3;
+
+    beforeEach(function() {
+      usr2 = {"nick": "Pepa", "email": "pepa@pepa.es"};
+      usr3 = {"nick": "Pepo", "email": "pepo@pepo.es"};
+      sistema.agregarUsuario(usr2);
+      sistema.agregarUsuario(usr3);
+    });
+
+    it("Usuarios y partidas en el sistema", function() {
+      expect(sistema.numeroUsuarios()).toEqual(3); // pepe (from outer describe) + pepa + pepo
+      expect(sistema.obtenerPartidasDisponibles().length).toEqual(0);
+    });
+
+    it("Crear partida", function() {
+      let codigo = sistema.crearPartida(usr2.email);
+      expect(codigo).not.toBe(-1);
+      expect(sistema.partidas[codigo]).toBeDefined();
+      expect(sistema.partidas[codigo].jugadores.length).toBe(1);
+      expect(sistema.partidas[codigo].jugadores[0]).toBe(usr2.email);
+    });
+
+    it("Unir a partida", function() {
+      let codigo = sistema.crearPartida(usr2.email);
+      let res = sistema.unirAPartida(usr3.email, codigo);
+      expect(res).toBe(codigo);
+      expect(sistema.partidas[codigo].jugadores.length).toBe(2);
+      expect(sistema.partidas[codigo].jugadores[1]).toBe(usr3.email);
+    });
+
+    it("Obtener partidas", function() {
+      let codigo = sistema.crearPartida(usr2.email);
+      let lista = sistema.obtenerPartidasDisponibles();
+      expect(lista.length).toBe(1);
+      expect(lista[0].codigo).toBe(codigo);
+      
+      sistema.unirAPartida(usr3.email, codigo);
+      lista = sistema.obtenerPartidasDisponibles();
+      expect(lista.length).toBe(0);
+    });
+  });
 })
 

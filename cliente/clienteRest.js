@@ -101,11 +101,17 @@ function ClienteRest() {
 			data: JSON.stringify({"email":email,"password":password}),
 			success:function(data){
 				if (data.nick!=-1){
-					$("#msg").html('<div class="alert alert-success">Registro correcto. Revisa tu correo para confirmar la cuenta e inicia sesión.</div>');
+					console.log("Usuario "+data.nick+" ha sido registrado");
+					// mostrar un mensaje diciendo: consulta tu email
+					//$.cookie("nick",data.nick);
+					cw.limpiar();
+					//cw.mostrarMensaje("Bienvenido al sistema, "+data.nick);
 					cw.mostrarLogin();
 				}
 				else{
-					$("#msg").html('<div class="alert alert-danger">Ese email ya está registrado. Prueba con otro o inicia sesión.</div>');
+					console.log("Hay un usuario registrado con ese email");
+					cw.mostrarMensajeLogin("Hay un usuario registrado con ese email");
+					cw.mostrarModal("No se ha podido registrar el usuario");
 				}
 			},
 			error:function(xhr, textStatus, errorThrown){
@@ -128,10 +134,12 @@ function ClienteRest() {
 				$.cookie("nick",data.nick);
 				cw.limpiar();
 				cw.mostrarMensaje("Bienvenido al sistema,"+data.nick);
-				//cw.mostrarLogin();
+				ws.email = data.nick; // Asignar email al cliente WS
+				cw.mostrarPanelOps();
 				}
 				else{
 					console.log("No se pudo iniciar sesión");
+					cw.mostrarModal("No se pudo iniciar sesión");
 					cw.mostrarLogin();
 					//cw.mostrarMensajeLogin("No se pudo iniciarsesión");
 				}

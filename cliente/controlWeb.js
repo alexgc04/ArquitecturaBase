@@ -1,5 +1,12 @@
 function ControlWeb() {
 
+    this.mostrarModal = function (m) {
+        $("#msgModal").remove();
+        let cadena = "<div id='msgModal'>" + m + "</div>";
+        $('#mBody').empty().append(cadena);
+        $('#miModal').modal();
+    }
+
     this.mostrarAgregarUsuario = function () {
         $('#bnv').remove();
         $('#mAU').remove();
@@ -62,21 +69,37 @@ function ControlWeb() {
         });
     }
 
+    this.mostrarMensajeLogin = function (msg) {
+        this.mostrarMensaje(msg);
+    }
+
     this.mostrarMensaje = function (msg) {
-        // Mostrar un bonito panel de bienvenida centrado
+        // Contenedor de notificaciones flotantes
+        if ($('#msgContainer').length === 0) {
+            $('body').append('<div id="msgContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px;"></div>');
+        }
+        
+        const id = 'msg-' + Date.now();
         const html = `
-                    <div class="d-flex justify-content-center mt-4">
-                        <div class="card w-75 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <h4 class="card-title mb-2">Bienvenido</h4>
-                                </div>
-                                <p class="card-text lead text-muted mb-0">${msg}</p>
-                            </div>
-                        </div>
-                    </div>`;
-        $("#au").html(html);
-        this.mostrarSalir();
+            <div id="${id}" class="toast show" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="true" data-delay="5000">
+                <div class="toast-header bg-primary text-white">
+                    <strong class="mr-auto">Sistema</strong>
+                    <small>Ahora</small>
+                    <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close" onclick="$('#${id}').remove()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="toast-body">
+                    ${msg}
+                </div>
+            </div>`;
+            
+        $('#msgContainer').append(html);
+        
+        // Auto-eliminar después de 5 segundos (fallback si bootstrap js no lo hace)
+        setTimeout(function() {
+            $(`#${id}`).fadeOut(500, function() { $(this).remove(); });
+        }, 5000);
     };
 
     this.comprobarSesion = function () {
@@ -89,6 +112,8 @@ function ControlWeb() {
                 if (nick && nick !== -1 && nick !== '-1') {
                     $.cookie('nick', nick);
                     cw.mostrarMensaje('Bienvenido al sistema, ' + nick);
+                    if (typeof ws !== 'undefined') ws.email = nick; // Asignar email al cliente WS
+                    cw.mostrarPanelOps();
                 } else {
                     $.removeCookie('nick');
                     cw.mostrarRegistro();
@@ -132,7 +157,7 @@ function ControlWeb() {
         try { $('#registro').empty(); } catch (_) {}
         try { $('#mAU').remove(); } catch (_) {}
         try { $('#bnv').remove(); } catch (_) {}
-        try { $.removeCookie('nick'); } catch (_) {}
+        // try { $.removeCookie('nick'); } catch (_) {} // No eliminar cookie aquí
     }
 
     this.mostrarRegistro = function () {
@@ -155,6 +180,18 @@ function ControlWeb() {
     // Mostrar panel con el resto de operaciones (6.3 exercises)
     this.mostrarPanelOps = function () {
         if (document.getElementById('opsPanel')) return; // ya creado
+        this.limpiar();
+        this.mostrarSalir();
+
+        let partidaActual = '';
+        if (ws.codigo) {
+            partidaActual = '<hr /><h5 class="card-title">Partida Actual: ' + ws.codigo + '</h5>';
+            if (ws.esHost) {
+                partidaActual += '<button id="btnEliminarPartida" class="btn btn-danger btn-sm">Eliminar Partida</button>';
+            } else {
+                partidaActual += '<button id="btnSalirPartida" class="btn btn-warning btn-sm">Salir Partida</button>';
+            }
+        }
 
         const ops =
             '<div id="opsPanel" class="card mt-4">' +
@@ -173,13 +210,52 @@ function ControlWeb() {
             '      <button id="btnEliminarUsuario" class="btn btn-outline-danger btn-sm">Eliminar usuario</button>' +
             '    </div>' +
             '    <hr />' +
+            '    <h5 class="card-title">Gestión de Partidas</h5>' +
+            '    <div class="form-inline mb-2">' +
+            '      <button id="btnCrearPartida" class="btn btn-primary btn-sm mr-2">Crear Partida</button>' +
+            '    </div>' +
+            '    <div class="form-inline mb-2">' +
+            '      <input id="codigoPartida" class="form-control mr-2" placeholder="Código partida">' +
+            '      <button id="btnUnirPartida" class="btn btn-success btn-sm">Unir a Partida</button>' +
+            '    </div>' +
+            partidaActual +
+            '    <hr />' +
+            '    <h5 class="card-title">Partidas Disponibles</h5>' +
+            '    <div id="listaPartidas" class="list-group mb-3"></div>' +
+            '    <hr />' +
             '    <pre id="opsResult" style="white-space:pre-wrap;"></pre>' +
             '  </div>' +
             '</div>';
 
         $("#au").append(ops);
 
+        $("#btnEliminarPartida").on("click", function() {
+            ws.eliminarPartida();
+        });
+        $("#btnSalirPartida").on("click", function() {
+            ws.salirPartida();
+        });
+
         // Handlers
+        $("#btnCrearPartida").on("click", function () {
+            let nick = $.cookie("nick");
+            if (nick) {
+                ws.crearPartida();
+            } else {
+                cw.mostrarModal("Debes iniciar sesión para crear una partida.");
+            }
+        });
+
+        $("#btnUnirPartida").on("click", function () {
+            let nick = $.cookie("nick");
+            let codigo = $("#codigoPartida").val();
+            if (nick && codigo) {
+                ws.unirAPartida(codigo);
+            } else {
+                cw.mostrarModal("Debes iniciar sesión e introducir un código.");
+            }
+        });
+
         $("#btnObtenerUsuarios").on('click', () => {
             $.getJSON('/obtenerUsuarios', function (data) {
                 const keys = Object.keys(data || {});
@@ -228,6 +304,53 @@ function ControlWeb() {
         });
     };
 
+
+    this.mostrarEsperandoRival = function() {
+        this.limpiar();
+        // Mostrar animación o mensaje de esperando rival
+        // Usamos un spinner de Bootstrap
+        let cadena = '<div id="mER" class="text-center mt-5">';
+        cadena += '<h3>Esperando rival...</h3>';
+        cadena += '<div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>';
+        if (ws.codigo) {
+            cadena += '<p class="mt-3">Código de partida: <strong>' + ws.codigo + '</strong></p>';
+        }
+        cadena += '<button id="btnCancelarPartida" class="btn btn-danger mt-3">Cancelar Partida</button>';
+        cadena += '</div>';
+        $('#au').append(cadena);
+
+        $("#btnCancelarPartida").on("click", function() {
+            ws.salirPartida();
+        });
+    }
+
+    this.mostrarListaPartidas = function (lista) {
+        $("#listaPartidas").empty();
+        if (lista.length === 0) {
+            $("#listaPartidas").append('<div class="list-group-item">No hay partidas disponibles</div>');
+            return;
+        }
+        
+        lista.forEach(function(partida) {
+            let item = $('<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"></a>');
+            item.append('<span>Partida <strong>' + partida.codigo + '</strong> (Creador: ' + partida.email + ')</span>');
+            let btn = $('<button class="btn btn-sm btn-success">Unirse</button>');
+            
+            btn.on("click", function(e) {
+                e.preventDefault();
+                let nick = $.cookie("nick");
+                if (nick) {
+                    if (typeof ws !== 'undefined' && !ws.email) ws.email = nick;
+                    ws.unirAPartida(partida.codigo);
+                } else {
+                    cw.mostrarModal("Debes iniciar sesión.");
+                }
+            });
+            
+            item.append(btn);
+            $("#listaPartidas").append(item);
+        });
+    }
 
     window.ControlWeb = ControlWeb;
 }

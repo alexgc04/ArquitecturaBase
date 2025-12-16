@@ -11,6 +11,12 @@ process.on('unhandledRejection', (reason) => {
 const express = require('express');
 const bodyParser=require("body-parser");
 const app = express();
+const httpServer = require('http').Server(app);
+const { Server } = require("socket.io");
+const moduloWS = require("./servidor/servidorWS.js");
+
+let io = new Server(httpServer);
+let ws = new moduloWS.ServidorWS();
 
 const passport=require("passport");
 const session = require('express-session');
@@ -129,8 +135,12 @@ app.get("/confirmarUsuario/:email/:key",function(request,response){
 
 
 app.get("/cerrarSesion",function(request,response){ 
+    let nick = request.user ? request.user.email : (request.session ? request.session.nick : "desconocido");
     // Passport 0.7 logout con callback
     request.logout(function(){
+        if (nick && nick !== "desconocido") {
+             sistema.cad.insertarLog({ "tipo": "cerrarSesion", "usuario": nick, "fecha": new Date() }, function (res) { });
+        }
         // limpiar cookie de sesión (cookie-session la invalidará al no tener datos)
         try { request.session = null; } catch(_) {}
         response.clearCookie('nick');
@@ -216,6 +226,14 @@ app.get("/eliminarUsuario/:nick", haIniciado, function(request, response){
 });
 console.log('Ruta /eliminarUsuario/:nick registrada');
 
+// REST: obtener logs (protegido)
+app.get("/obtenerLogs", haIniciado, function(request, response) {
+    sistema.obtenerLogs(function(logs){
+        response.send(logs);
+    });
+});
+console.log('Ruta /obtenerLogs registrada');
+
 // Ruta de depuración opcional
 app.get('/routes', (req, res) => {
     const routes = [];
@@ -234,10 +252,12 @@ app.get('/routes', (req, res) => {
 });
 
 // Arrancar servidor
-const server = app.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`App está escuchando en http://0.0.0.0:${PORT}`);
     console.log('Ctrl+C para salir');
 });
+
+ws.lanzarServidor(io, sistema);
 
 // 404
 app.use((req, res) => {

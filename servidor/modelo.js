@@ -10,6 +10,7 @@ function Sistema() {
         console.log("Conectado a Mongo Atlas");
     });
     this.usuarios = {};
+    this.partidas = {};
 
     this.agregarUsuario = function (nick) {
         let res = { "nick": -1 };
@@ -48,10 +49,85 @@ function Sistema() {
         return Object.keys(this.usuarios).length;
     }
 
+    this.crearPartida = function (email) {
+        let codigo = this.obtenerCodigo();
+        if (!this.partidas[codigo]) {
+            this.partidas[codigo] = new Partida(codigo);
+            this.partidas[codigo].jugadores.push(email);
+            this.cad.insertarLog({ "tipo": "crearPartida", "usuario": email, "fecha": new Date() }, function (res) { });
+            return codigo;
+        }
+        return -1;
+    }
+
+    this.unirAPartida = function (email, codigo) {
+        if (this.partidas[codigo]) {
+            if (this.partidas[codigo].jugadores.length < this.partidas[codigo].maxJug) {
+                this.partidas[codigo].jugadores.push(email);
+                this.cad.insertarLog({ "tipo": "unirAPartida", "usuario": email, "fecha": new Date() }, function (res) { });
+                return codigo;
+            }
+        }
+        return -1;
+    }
+
+    this.obtenerPartidasDisponibles = function () {
+        let lista = [];
+        for (var e in this.partidas) {
+            if (this.partidas[e].jugadores.length < this.partidas[e].maxJug) {
+                lista.push({ "codigo": e, "email": this.partidas[e].jugadores[0] });
+            }
+        }
+        return lista;
+    }
+
+    this.salirPartida = function (codigo, email) {
+        if (this.partidas[codigo]) {
+            let index = this.partidas[codigo].jugadores.indexOf(email);
+            if (index > -1) {
+                this.partidas[codigo].jugadores.splice(index, 1);
+                this.cad.insertarLog({ "tipo": "salirPartida", "usuario": email, "fecha": new Date() }, function (res) { });
+            }
+            if (this.partidas[codigo].jugadores.length === 0) {
+                delete this.partidas[codigo];
+                return { codigo: codigo, eliminada: true };
+            }
+            return { codigo: codigo, eliminada: false, jugadores: this.partidas[codigo].jugadores };
+        }
+        return { codigo: -1 };
+    }
+
+    this.eliminarPartida = function (codigo, email) {
+        if (this.partidas[codigo]) {
+            if (this.partidas[codigo].jugadores[0] === email) {
+                let jugadores = this.partidas[codigo].jugadores;
+                delete this.partidas[codigo];
+                this.cad.insertarLog({ "tipo": "eliminarPartida", "usuario": email, "fecha": new Date() }, function (res) { });
+                return { codigo: codigo, eliminada: true, jugadores: jugadores };
+            }
+        }
+        return { codigo: codigo, eliminada: false };
+    }
+
+    this.obtenerLogs = function (callback) {
+        this.cad.obtenerLogs(callback);
+    }
+
+    this.obtenerCodigo = function () {
+        let cadena = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        let codigo = "";
+        for (let i = 0; i < 6; i++) {
+            codigo += cadena.charAt(Math.floor(Math.random() * cadena.length));
+        }
+        return codigo;
+    }
+
     // Inicializar CAD y conectar
     this.usuarioGoogle = function (usr, callback) {
+        let modelo = this;
         this.cad.buscarOCrearUsuario(usr, function (obj) {
             callback(obj);
+            modelo.cad.insertarLog({ "tipo": "inicioGoogle", "usuario": usr.email, "fecha": new Date() }, function (res) { });
         });
     }
     // Registrar usuario: si no existe, insertarlo en la BD (hash de password usando bcrypt)
@@ -71,6 +147,7 @@ function Sistema() {
             obj.password=hash; 
             modelo.cad.insertarUsuario(obj,function(res){ 
                 callback(res); 
+                modelo.cad.insertarLog({ "tipo": "registroUsuario", "usuario": obj.email, "fecha": new Date() }, function (res) { });
             }); 
             correo.enviarEmail(obj.email,key,"Confirmar cuenta"); 
         } 
@@ -96,6 +173,7 @@ function Sistema() {
                             if (result) {
                                 callback(usr);
                                 modelo.agregarUsuario(usr);
+                                modelo.cad.insertarLog({ "tipo": "inicioLocal", "usuario": usr.email, "fecha": new Date() }, function (res) { });
                             }
                             else {
                                 callback({ "email": -1 });
@@ -146,6 +224,12 @@ this.compararContraseña = function (password, hash, callback) {
 
 function Usuario(nick) {
     this.nick = nick;
+}
+
+function Partida(codigo) {
+    this.codigo = codigo;
+    this.jugadores = [];
+    this.maxJug = 2;
 }
 }
 
