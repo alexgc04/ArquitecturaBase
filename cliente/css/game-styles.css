@@ -1,0 +1,795 @@
+/* ============================================
+   STRIKE COMMAND: Dominio Total
+   Estilos del juego - Tierra, Mar y Aire
+   ============================================ */
+
+/* Variables de colores temáticos */
+:root {
+    --color-aire: #87CEEB;
+    --color-aire-dark: #4A90A4;
+    --color-mar: #1E3A5F;
+    --color-mar-dark: #0D1B2A;
+    --color-tierra: #5D4E37;
+    --color-tierra-dark: #3D2E1F;
+    --color-fuego: #FF4500;
+    --color-oro: #FFD700;
+    --color-plata: #C0C0C0;
+    --color-texto: #E0E0E0;
+    --color-fondo: #0a0a0a;
+}
+
+/* Reset y base */
+* {
+    box-sizing: border-box;
+}
+
+body.game-body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(180deg, 
+        var(--color-aire) 0%, 
+        var(--color-aire-dark) 15%,
+        var(--color-mar) 40%, 
+        var(--color-mar-dark) 60%,
+        var(--color-tierra-dark) 85%,
+        var(--color-tierra) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: var(--color-texto);
+}
+
+/* Contenedor principal del juego */
+.game-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Partículas/efectos de fondo */
+.game-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Logo y título del juego */
+.game-header {
+    text-align: center;
+    margin-bottom: 30px;
+    z-index: 1;
+    animation: fadeInDown 1s ease;
+}
+
+.game-logo {
+    font-size: 3.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--color-oro) 0%, var(--color-plata) 50%, var(--color-oro) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    margin-bottom: 5px;
+}
+
+.game-subtitle {
+    font-size: 1.3rem;
+    color: var(--color-plata);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+/* Iconos de dominio (tierra, mar, aire) */
+.domain-icons {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 20px 0;
+    z-index: 1;
+}
+
+.domain-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.domain-icon.air {
+    background: linear-gradient(135deg, #87CEEB, #4A90A4);
+    box-shadow: 0 0 20px rgba(135, 206, 235, 0.5);
+}
+
+.domain-icon.sea {
+    background: linear-gradient(135deg, #1E90FF, #0D1B2A);
+    box-shadow: 0 0 20px rgba(30, 144, 255, 0.5);
+}
+
+.domain-icon.land {
+    background: linear-gradient(135deg, #8B4513, #3D2E1F);
+    box-shadow: 0 0 20px rgba(139, 69, 19, 0.5);
+}
+
+.domain-icon:hover {
+    transform: scale(1.15) rotate(5deg);
+}
+
+/* Menú principal */
+.main-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 350px;
+    z-index: 1;
+    animation: fadeInUp 1s ease 0.3s both;
+}
+
+/* Botones del menú */
+.menu-btn {
+    padding: 18px 40px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.menu-btn:hover::before {
+    left: 100%;
+}
+
+.menu-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.menu-btn:active {
+    transform: translateY(-1px);
+}
+
+/* Botón Un Jugador */
+.btn-singleplayer {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: white;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.btn-singleplayer:hover {
+    background: linear-gradient(135deg, #34ce57, #28a745);
+}
+
+/* Botón Multijugador */
+.btn-multiplayer {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+.btn-multiplayer:hover {
+    background: linear-gradient(135deg, #3395ff, #007bff);
+}
+
+/* Botón Configuración */
+.btn-config {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+}
+
+.btn-config:hover {
+    background: linear-gradient(135deg, #868e96, #6c757d);
+}
+
+/* Botón Salir */
+.btn-exit {
+    background: linear-gradient(135deg, #dc3545, #a71d2a);
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+}
+
+.btn-exit:hover {
+    background: linear-gradient(135deg, #e4606d, #dc3545);
+}
+
+/* Panel de juego (multijugador/singleplayer) */
+.game-panel {
+    background: rgba(13, 27, 42, 0.95);
+    border-radius: 15px;
+    padding: 30px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    z-index: 1;
+    animation: fadeIn 0.5s ease;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+
+.panel-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-oro);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-back {
+    background: transparent;
+    border: 2px solid var(--color-plata);
+    color: var(--color-plata);
+    padding: 8px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.btn-back:hover {
+    background: var(--color-plata);
+    color: var(--color-mar-dark);
+}
+
+/* Sección de amigos */
+.friends-section {
+    margin-bottom: 25px;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    color: var(--color-aire);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.friend-input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.game-input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.game-input:focus {
+    outline: none;
+    border-color: var(--color-aire);
+    box-shadow: 0 0 10px rgba(135, 206, 235, 0.3);
+}
+
+.game-input::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+.btn-action {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-add {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: white;
+}
+
+.btn-add:hover {
+    transform: scale(1.05);
+}
+
+/* Lista de amigos */
+.friends-list {
+    max-height: 150px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.friend-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 5px;
+    margin-bottom: 8px;
+}
+
+.friend-item:last-child {
+    margin-bottom: 0;
+}
+
+.friend-name {
+    color: var(--color-texto);
+    font-weight: 500;
+}
+
+.friend-status {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #28a745;
+}
+
+.friend-status.offline {
+    background: #6c757d;
+}
+
+.btn-remove {
+    background: transparent;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.btn-remove:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Sección de partidas */
+.matches-section {
+    margin-top: 25px;
+}
+
+.match-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.btn-create-match {
+    flex: 1;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--color-oro), #FFA500);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-create-match:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+}
+
+.join-match-group {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-join {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+}
+
+/* Lista de partidas disponibles */
+.matches-list {
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.match-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.8), rgba(13, 27, 42, 0.8));
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--color-oro);
+    transition: all 0.3s ease;
+}
+
+.match-item:hover {
+    transform: translateX(5px);
+    background: linear-gradient(135deg, rgba(30, 58, 95, 1), rgba(13, 27, 42, 1));
+}
+
+.match-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.match-code {
+    font-weight: 700;
+    color: var(--color-oro);
+}
+
+.match-host {
+    font-size: 0.85rem;
+    color: var(--color-plata);
+}
+
+.btn-join-match {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-join-match:hover {
+    transform: scale(1.05);
+}
+
+/* Panel de selección de dificultad (Un jugador) */
+.difficulty-section {
+    text-align: center;
+}
+
+.difficulty-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.difficulty-btn {
+    padding: 25px 20px;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.difficulty-btn .diff-name {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.difficulty-btn .diff-desc {
+    display: block;
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.diff-beginner {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    color: white;
+}
+
+.diff-amateur {
+    background: linear-gradient(135deg, #ffc107, #d39e00);
+    color: #000;
+}
+
+.diff-professional {
+    background: linear-gradient(135deg, #fd7e14, #dc6a00);
+    color: white;
+}
+
+.diff-legend {
+    background: linear-gradient(135deg, #dc3545, #a71d2a);
+    color: white;
+}
+
+.difficulty-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+/* Esperando rival */
+.waiting-screen {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.waiting-title {
+    font-size: 1.5rem;
+    color: var(--color-oro);
+    margin-bottom: 20px;
+}
+
+.waiting-code {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: white;
+    background: rgba(0,0,0,0.3);
+    padding: 15px 30px;
+    border-radius: 10px;
+    letter-spacing: 5px;
+    margin: 20px 0;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: var(--color-oro);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+/* Barra de usuario conectado */
+.user-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(13, 27, 42, 0.95);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-oro), var(--color-plata));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--color-mar-dark);
+}
+
+.user-name {
+    color: var(--color-texto);
+    font-weight: 600;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-aire-dark);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-aire);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .game-logo {
+        font-size: 2rem;
+    }
+    
+    .game-subtitle {
+        font-size: 0.9rem;
+        letter-spacing: 4px;
+    }
+    
+    .domain-icons {
+        gap: 15px;
+    }
+    
+    .domain-icon {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    .menu-btn {
+        padding: 15px 30px;
+        font-size: 1rem;
+    }
+    
+    .game-panel {
+        padding: 20px;
+    }
+    
+    .difficulty-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Ocular navbar original de bootstrap cuando está en modo juego */
+body.game-body .navbar {
+    display: none !important;
+}
+
+/* Contenedor para formularios de login/registro con estilo del juego */
+.game-form-container {
+    background: rgba(13, 27, 42, 0.95);
+    border-radius: 15px;
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    z-index: 1;
+}
+
+.game-form-container h3 {
+    color: var(--color-oro);
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 700;
+}
+
+.game-form-container .form-group label {
+    color: var(--color-texto);
+}
+
+.game-form-container .form-control {
+    background: rgba(0,0,0,0.3);
+    border: 2px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+}
+
+.game-form-container .form-control:focus {
+    border-color: var(--color-aire);
+    box-shadow: 0 0 10px rgba(135, 206, 235, 0.3);
+    background: rgba(0,0,0,0.4);
+}
+
+.game-form-container .btn-primary {
+    background: linear-gradient(135deg, var(--color-oro), #FFA500);
+    border: none;
+    color: #000;
+    font-weight: 700;
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.game-form-container .btn-primary:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Links en formularios */
+.form-links {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.form-links a {
+    color: var(--color-aire);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.form-links a:hover {
+    color: var(--color-oro);
+}
+
+/* Modal con estilo del juego */
+body.game-body .modal-content {
+    background: rgba(13, 27, 42, 0.98);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--color-texto);
+}
+
+body.game-body .modal-header {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+body.game-body .modal-title {
+    color: var(--color-oro);
+}
+
+body.game-body .modal-footer {
+    border-top: 1px solid rgba(255,255,255,0.1);
+}

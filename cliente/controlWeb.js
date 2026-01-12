@@ -1,34 +1,15 @@
 function ControlWeb() {
 
+    // ==========================================
+    // STRIKE COMMAND: Dominio Total
+    // Control de la interfaz web del juego
+    // ==========================================
+
     this.mostrarModal = function (m) {
         $("#msgModal").remove();
         let cadena = "<div id='msgModal'>" + m + "</div>";
         $('#mBody').empty().append(cadena);
         $('#miModal').modal();
-    }
-
-    this.mostrarAgregarUsuario = function () {
-        $('#bnv').remove();
-        $('#mAU').remove();
-        let cadena = '<div id="mAU">';
-        cadena = cadena + '<div class="card"><div class="card-body">';
-        cadena = cadena + '<div class="form-group">';
-        cadena = cadena + '<label for="nick">Nick:</label>';
-        cadena = cadena + '<p><input type="text" class="form-control" id="nick" placeholder="introduce un nick"></p>';
-        cadena = cadena + '<button id="btnAU" type="submit" class="btn btn-primary">Submit</button>';
-        cadena = cadena + '<div><a href="/auth/google"><img src="./cliente/img/btn_google_signin_light_focus_web@2x.png" style="height:40px;"></a></div>';
-        cadena = cadena + '</div>';
-        cadena = cadena + '</div></div></div>';
-
-        if (!$("#mAU").length) $("#au").append(cadena);
-        $("#btnAU").on("click", function () {
-            let nick = $("#nick").val();
-            if (typeof rest === 'undefined') {
-                window.rest = new ClienteRest();
-            }
-            rest.agregarUsuario(nick);
-            $("#mAU").remove();
-        });
     }
 
     this.registrarUsuario = function (email, password) {
@@ -39,33 +20,64 @@ function ControlWeb() {
             success: function (data) {
                 if (data.nick != -1) {
                     console.log("Usuario " + data.nick + " ha sido registrado");
-                    // Mostrar mensaje y formulario de login
-                    cw.mostrarMensaje('Registro completado. Por favor inicie sesión.');
+                    cw.mostrarMensaje('¡Registro completado! Inicia sesión para jugar.');
                     cw.mostrarLogin();
                 } else {
                     console.log("El nick está ocupado");
                     cw.mostrarMensaje('Error: ya existe un usuario con ese email.');
                 }
             },
-            error: function (xhr, textStatus, errorThrown) { console.log("Status: " + textStatus); console.log("Error: " + errorThrown); }, contentType: 'application/json'
+            error: function (xhr, textStatus, errorThrown) { 
+                console.log("Status: " + textStatus); 
+                console.log("Error: " + errorThrown); 
+            }, 
+            contentType: 'application/json'
         });
     }
 
-    // Mostrar formulario de inicio de sesión
+    // Mostrar formulario de inicio de sesión con estilo del juego
     this.mostrarLogin = function () {
         if ($.cookie('nick')) {
             return true;
-        }; 
-        $("#fmLogin").remove(); 
-        $("#registro").load("./cliente/login.html", function () { 
-            $("#btnLogin").on("click", function () { 
-                let email = $("#email").val(); 
-                let pwd = $("#pwd").val(); 
-                if (email && pwd) { 
-                    rest.loginUsuario(email, pwd); 
-                    console.log(email + " " + pwd); 
-                } 
-            }); 
+        }
+        this.limpiar();
+        
+        const loginForm = `
+            <div id="fmLogin" class="game-form-container">
+                <h3>🎖️ Iniciar Sesión</h3>
+                <form>
+                    <div class="form-group">
+                        <label for="email">Email de combate:</label>
+                        <input type="email" class="form-control" placeholder="tu@email.com" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="pwd">Contraseña:</label>
+                        <input type="password" class="form-control" placeholder="••••••••" id="pwd">
+                    </div>
+                    <button type="submit" id="btnLogin" class="btn btn-primary">⚔️ Entrar al Combate</button>
+                </form>
+                <div class="form-links">
+                    <p>¿No tienes cuenta? <a href="#" id="linkRegistro">Regístrate aquí</a></p>
+                </div>
+            </div>
+        `;
+        
+        $("#registro").html(loginForm);
+        
+        $("#btnLogin").on("click", function(e) {
+            e.preventDefault();
+            let email = $("#email").val();
+            let pwd = $("#pwd").val();
+            if (email && pwd) {
+                rest.loginUsuario(email, pwd);
+            } else {
+                cw.mostrarMensaje('Introduce email y contraseña.');
+            }
+        });
+        
+        $("#linkRegistro").on("click", function(e) {
+            e.preventDefault();
+            cw.mostrarRegistro();
         });
     }
 
@@ -74,170 +86,306 @@ function ControlWeb() {
     }
 
     this.mostrarMensaje = function (msg) {
-        // Contenedor de notificaciones flotantes
         if ($('#msgContainer').length === 0) {
-            $('body').append('<div id="msgContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px;"></div>');
+            $('body').append('<div id="msgContainer" style="position: fixed; top: 70px; right: 20px; z-index: 9999; width: 350px;"></div>');
         }
         
         const id = 'msg-' + Date.now();
         const html = `
-            <div id="${id}" class="toast show" role="alert" aria-live="assertive" aria-atomic="true" data-autohide="true" data-delay="5000">
-                <div class="toast-header bg-primary text-white">
-                    <strong class="mr-auto">Sistema</strong>
+            <div id="${id}" class="toast show" role="alert" style="background: rgba(13, 27, 42, 0.95); border: 1px solid rgba(255,215,0,0.3);">
+                <div class="toast-header" style="background: linear-gradient(135deg, #FFD700, #FFA500); color: #000;">
+                    <strong class="mr-auto">⚔️ Strike Command</strong>
                     <small>Ahora</small>
-                    <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close" onclick="$('#${id}').remove()">
-                        <span aria-hidden="true">&times;</span>
+                    <button type="button" class="ml-2 mb-1 close" onclick="$('#${id}').remove()">
+                        <span>&times;</span>
                     </button>
                 </div>
-                <div class="toast-body">
+                <div class="toast-body" style="color: #E0E0E0;">
                     ${msg}
                 </div>
             </div>`;
             
         $('#msgContainer').append(html);
         
-        // Auto-eliminar después de 5 segundos (fallback si bootstrap js no lo hace)
         setTimeout(function() {
             $(`#${id}`).fadeOut(500, function() { $(this).remove(); });
         }, 5000);
     };
 
     this.comprobarSesion = function () {
-        // Comprobar sesión VALIDADA por servidor (no fiarse de la cookie local)
         if (typeof rest === 'undefined') { window.rest = new ClienteRest(); }
         $.getJSON('/ok')
             .done(function (data) {
                 const nick = data && data.nick;
-                // tratar -1 (numérico o string) como no autenticado
                 if (nick && nick !== -1 && nick !== '-1') {
                     $.cookie('nick', nick);
-                    cw.mostrarMensaje('Bienvenido al sistema, ' + nick);
-                    if (typeof ws !== 'undefined') ws.email = nick; // Asignar email al cliente WS
-                    cw.mostrarPanelOps();
+                    if (typeof ws !== 'undefined') ws.email = nick;
+                    cw.mostrarBarraUsuario(nick);
+                    cw.mostrarMenuPrincipal();
                 } else {
                     $.removeCookie('nick');
-                    cw.mostrarRegistro();
+                    cw.ocultarBarraUsuario();
+                    cw.mostrarLogin();
                 }
             })
             .fail(function () {
                 $.removeCookie('nick');
-                cw.mostrarRegistro();
+                cw.ocultarBarraUsuario();
+                cw.mostrarLogin();
             });
     }
 
     this.salir = function () {
-        // Delegar en REST para cerrar sesión de servidor y limpiar estado local
         if (typeof rest === 'undefined') {
             window.rest = new ClienteRest();
         }
         rest.cerrarSesion();
     }
 
-    // Dibuja un botón de salir para limpiar la sesión manualmente
-    this.mostrarSalir = function () {
-        if (document.getElementById('btnSalir')) return;
-        // Colocar el botón de salir en la esquina superior izquierda del contenedor de mensajes
-        const btn = '<div id="bnv" class="mb-2"><button id="btnSalir" class="btn btn-sm btn-outline-dark">Salir</button></div>';
-        // Si hay un área de mensajes, insertar el botón antes del primer child para mostrarlo encima
-        if ($('#au').children().length) {
-            $('#au').prepend(btn);
-        } else {
-            $('#au').html(btn);
-        }
-        // Bind click to explicitly call the REST logout to avoid `this` binding issues
-        $("#btnSalir").on('click', function () {
-            if (typeof rest === 'undefined') { window.rest = new ClienteRest(); }
-            rest.cerrarSesion();
-        });
+    // Mostrar barra de usuario conectado
+    this.mostrarBarraUsuario = function(nick) {
+        const inicial = nick.charAt(0).toUpperCase();
+        $('#userAvatar').text(inicial);
+        $('#userName').text(nick);
+        $('#userBar').fadeIn();
+        // Ocultar Google One Tap cuando está logueado
+        $('#googleSigninContainer').hide();
+    }
+
+    this.ocultarBarraUsuario = function() {
+        $('#userBar').hide();
+        // Mostrar Google One Tap cuando no está logueado
+        $('#googleSigninContainer').show();
     }
 
     this.limpiar = function () {
-        // Limpiar áreas de UI utilizadas por el flujo de autenticación
         try { $('#au').empty(); } catch (_) {}
         try { $('#registro').empty(); } catch (_) {}
-        try { $('#mAU').remove(); } catch (_) {}
-        try { $('#bnv').remove(); } catch (_) {}
-        // try { $.removeCookie('nick'); } catch (_) {} // No eliminar cookie aquí
     }
 
     this.mostrarRegistro = function () {
-        $("#fmRegistro").remove();
-        $("#registro").load("./cliente/registro.html", function () {
-            $("#btnRegistro").on("click", function (e) {
-                e.preventDefault();
-                let email = $("#email").val();
-                let pwd = $("#pwd").val();
-                if (email && pwd) {
-                    // Delegar en el método que hace el POST
-                    cw.registrarUsuario(email, pwd);
-                } else {
-                    cw.mostrarMensaje('Rellene email y contraseña.');
-                }
-            });
+        this.limpiar();
+        
+        const registroForm = `
+            <div id="fmRegistro" class="game-form-container">
+                <h3>🎖️ Registro de Comandante</h3>
+                <form>
+                    <div class="form-group">
+                        <label for="apellidos">Apellidos:</label>
+                        <input type="text" class="form-control" placeholder="Tus apellidos" id="apellidos">
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" class="form-control" placeholder="Tu nombre" id="nombre">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email de combate:</label>
+                        <input type="email" class="form-control" placeholder="tu@email.com" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="pwd">Contraseña:</label>
+                        <input type="password" class="form-control" placeholder="Mínimo 6 caracteres" id="pwd">
+                    </div>
+                    <button type="button" id="btnRegistro" class="btn btn-primary">🚀 Unirse a la Batalla</button>
+                </form>
+                <div class="form-links">
+                    <p>¿Ya tienes cuenta? <a href="#" id="linkLogin">Inicia sesión</a></p>
+                </div>
+            </div>
+        `;
+        
+        $("#registro").html(registroForm);
+        
+        $("#btnRegistro").on("click", function(e) {
+            e.preventDefault();
+            let email = $("#email").val();
+            let pwd = $("#pwd").val();
+            if (email && pwd) {
+                cw.registrarUsuario(email, pwd);
+            } else {
+                cw.mostrarMensaje('Rellena email y contraseña.');
+            }
+        });
+        
+        $("#linkLogin").on("click", function(e) {
+            e.preventDefault();
+            cw.mostrarLogin();
         });
     }
 
-    // Mostrar panel con el resto de operaciones (6.3 exercises)
-    this.mostrarPanelOps = function () {
-        if (document.getElementById('opsPanel')) return; // ya creado
+    // ==========================================
+    // MENÚ PRINCIPAL DEL JUEGO
+    // ==========================================
+    
+    this.mostrarMenuPrincipal = function () {
         this.limpiar();
-        this.mostrarSalir();
-
-        let partidaActual = '';
-        if (ws.codigo) {
-            partidaActual = '<hr /><h5 class="card-title">Partida Actual: ' + ws.codigo + '</h5>';
-            if (ws.esHost) {
-                partidaActual += '<button id="btnEliminarPartida" class="btn btn-danger btn-sm">Eliminar Partida</button>';
-            } else {
-                partidaActual += '<button id="btnSalirPartida" class="btn btn-warning btn-sm">Salir Partida</button>';
-            }
-        }
-
-        const ops =
-            '<div id="opsPanel" class="card mt-4">' +
-            '  <div class="card-body">' +
-            '    <h5 class="card-title">Operaciones</h5>' +
-            '    <div class="mb-2">' +
-            '      <button id="btnObtenerUsuarios" class="btn btn-outline-primary btn-sm">Obtener usuarios</button>' +
-            '      <button id="btnNumeroUsuarios" class="btn btn-outline-secondary btn-sm ml-2">Número usuarios</button>' +
-            '    </div>' +
-            '    <div class="form-inline mb-2">' +
-            '      <input id="nickCheck" class="form-control mr-2" placeholder="nick a comprobar">' +
-            '      <button id="btnUsuarioActivo" class="btn btn-outline-success btn-sm">Usuario activo?</button>' +
-            '    </div>' +
-            '    <div class="form-inline mb-2">' +
-            '      <input id="nickEliminar" class="form-control mr-2" placeholder="nick a eliminar">' +
-            '      <button id="btnEliminarUsuario" class="btn btn-outline-danger btn-sm">Eliminar usuario</button>' +
-            '    </div>' +
-            '    <hr />' +
-            '    <h5 class="card-title">Gestión de Partidas</h5>' +
-            '    <div class="form-inline mb-2">' +
-            '      <button id="btnCrearPartida" class="btn btn-primary btn-sm mr-2">Crear Partida</button>' +
-            '    </div>' +
-            '    <div class="form-inline mb-2">' +
-            '      <input id="codigoPartida" class="form-control mr-2" placeholder="Código partida">' +
-            '      <button id="btnUnirPartida" class="btn btn-success btn-sm">Unir a Partida</button>' +
-            '    </div>' +
-            partidaActual +
-            '    <hr />' +
-            '    <h5 class="card-title">Partidas Disponibles</h5>' +
-            '    <div id="listaPartidas" class="list-group mb-3"></div>' +
-            '    <hr />' +
-            '    <pre id="opsResult" style="white-space:pre-wrap;"></pre>' +
-            '  </div>' +
-            '</div>';
-
-        $("#au").append(ops);
-
-        $("#btnEliminarPartida").on("click", function() {
-            ws.eliminarPartida();
+        
+        const menu = `
+            <div class="main-menu" id="mainMenu">
+                <button class="menu-btn btn-singleplayer" id="btnUnJugador">
+                    🤖 Un Jugador
+                </button>
+                <button class="menu-btn btn-multiplayer" id="btnMultijugador">
+                    👥 Multijugador
+                </button>
+                <button class="menu-btn btn-config" id="btnConfiguracion">
+                    ⚙️ Configuración
+                </button>
+                <button class="menu-btn btn-exit" id="btnSalir">
+                    🚪 Salir
+                </button>
+            </div>
+        `;
+        
+        $("#au").html(menu);
+        
+        // Handlers de los botones
+        $("#btnUnJugador").on("click", function() {
+            cw.mostrarPanelUnJugador();
         });
-        $("#btnSalirPartida").on("click", function() {
-            ws.salirPartida();
+        
+        $("#btnMultijugador").on("click", function() {
+            cw.mostrarPanelMultijugador();
         });
+        
+        $("#btnConfiguracion").on("click", function() {
+            cw.mostrarModal("⚙️ Configuración en desarrollo. ¡Próximamente!");
+        });
+        
+        $("#btnSalir").on("click", function() {
+            cw.salir();
+        });
+    }
 
+    // ==========================================
+    // PANEL UN JUGADOR (VS IA)
+    // ==========================================
+    
+    this.mostrarPanelUnJugador = function() {
+        this.limpiar();
+        
+        const panel = `
+            <div class="game-panel" id="singlePlayerPanel">
+                <div class="panel-header">
+                    <h2 class="panel-title">🤖 Un Jugador</h2>
+                    <button class="btn-back" id="btnVolverMenu">← Volver</button>
+                </div>
+                
+                <div class="difficulty-section">
+                    <p style="color: var(--color-plata); margin-bottom: 10px;">Selecciona la dificultad de tu oponente:</p>
+                    
+                    <div class="difficulty-grid">
+                        <button class="difficulty-btn diff-beginner" data-difficulty="beginner">
+                            <span class="diff-name">🌱 Principiante</span>
+                            <span class="diff-desc">IA básica, ideal para aprender</span>
+                        </button>
+                        <button class="difficulty-btn diff-amateur" data-difficulty="amateur">
+                            <span class="diff-name">⭐ Amateur</span>
+                            <span class="diff-desc">Desafío moderado</span>
+                        </button>
+                        <button class="difficulty-btn diff-professional" data-difficulty="professional">
+                            <span class="diff-name">🏆 Profesional</span>
+                            <span class="diff-desc">Oponente inteligente</span>
+                        </button>
+                        <button class="difficulty-btn diff-legend" data-difficulty="legend">
+                            <span class="diff-name">👑 Leyenda</span>
+                            <span class="diff-desc">¿Te atreves?</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $("#au").html(panel);
+        
+        $("#btnVolverMenu").on("click", function() {
+            cw.mostrarMenuPrincipal();
+        });
+        
+        $(".difficulty-btn").on("click", function() {
+            const difficulty = $(this).data("difficulty");
+            cw.iniciarPartidaIA(difficulty);
+        });
+    }
+
+    this.iniciarPartidaIA = function(difficulty) {
+        const diffNames = {
+            'beginner': 'Principiante',
+            'amateur': 'Amateur', 
+            'professional': 'Profesional',
+            'legend': 'Leyenda'
+        };
+        
+        this.mostrarMensaje(`🎮 Iniciando partida contra IA ${diffNames[difficulty]}...`);
+        
+        // Guardar la dificultad seleccionada
+        this.aiDifficulty = difficulty;
+        
+        // Mostrar pantalla de preparación (se implementará la lógica del juego después)
+        this.mostrarPreparacionPartida('ia', difficulty);
+    }
+
+    // ==========================================
+    // PANEL MULTIJUGADOR
+    // ==========================================
+    
+    this.mostrarPanelMultijugador = function() {
+        this.limpiar();
+        
+        const panel = `
+            <div class="game-panel" id="multiplayerPanel">
+                <div class="panel-header">
+                    <h2 class="panel-title">👥 Multijugador</h2>
+                    <button class="btn-back" id="btnVolverMenu">← Volver</button>
+                </div>
+                
+                <!-- Sección de Amigos -->
+                <div class="friends-section">
+                    <h4 class="section-title">👤 Amigos</h4>
+                    <div class="friend-input-group">
+                        <input type="text" class="game-input" id="inputBuscarAmigo" placeholder="Buscar usuario por nick...">
+                        <button class="btn-action btn-add" id="btnAgregarAmigo">+ Añadir</button>
+                    </div>
+                    <div class="friends-list" id="listaAmigos">
+                        <p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">
+                            No tienes amigos agregados aún
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Sección de Partidas -->
+                <div class="matches-section">
+                    <h4 class="section-title">🎮 Partidas</h4>
+                    
+                    <div class="match-actions">
+                        <button class="btn-create-match" id="btnCrearPartida">
+                            ⚔️ Crear Nueva Partida
+                        </button>
+                    </div>
+                    
+                    <div class="join-match-group">
+                        <input type="text" class="game-input" id="codigoPartida" placeholder="Código de partida...">
+                        <button class="btn-action btn-join" id="btnUnirPartida">Unirse</button>
+                    </div>
+                    
+                    <h5 class="section-title" style="margin-top: 20px;">📋 Partidas Disponibles</h5>
+                    <div class="matches-list" id="listaPartidas">
+                        <p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">
+                            Buscando partidas...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $("#au").html(panel);
+        
         // Handlers
-        $("#btnCrearPartida").on("click", function () {
+        $("#btnVolverMenu").on("click", function() {
+            cw.mostrarMenuPrincipal();
+        });
+        
+        $("#btnCrearPartida").on("click", function() {
             let nick = $.cookie("nick");
             if (nick) {
                 ws.crearPartida();
@@ -245,111 +393,202 @@ function ControlWeb() {
                 cw.mostrarModal("Debes iniciar sesión para crear una partida.");
             }
         });
-
-        $("#btnUnirPartida").on("click", function () {
+        
+        $("#btnUnirPartida").on("click", function() {
             let nick = $.cookie("nick");
             let codigo = $("#codigoPartida").val();
             if (nick && codigo) {
                 ws.unirAPartida(codigo);
             } else {
-                cw.mostrarModal("Debes iniciar sesión e introducir un código.");
+                cw.mostrarModal("Introduce un código de partida válido.");
             }
         });
-
-        $("#btnObtenerUsuarios").on('click', () => {
-            $.getJSON('/obtenerUsuarios', function (data) {
-                const keys = Object.keys(data || {});
-                $("#opsResult").text('Usuarios (' + keys.length + '):\n' + keys.join('\n'));
-            }).fail(function () {
-                $("#opsResult").text('Error al obtener usuarios');
-            });
-        });
-
-        $("#btnNumeroUsuarios").on('click', () => {
-            $.getJSON('/numeroUsuarios', function (data) {
-                if (data && data.num !== undefined) {
-                    $("#opsResult").text('Número de usuarios: ' + data.num);
-                } else {
-                    $("#opsResult").text('Respuesta inesperada: ' + JSON.stringify(data));
-                }
-            }).fail(function () {
-                $("#opsResult").text('Error al obtener número de usuarios');
-            });
-        });
-
-        $("#btnUsuarioActivo").on('click', () => {
-            const nick = $("#nickCheck").val();
-            if (!nick) {
-                $("#opsResult").text('Introduce un nick a comprobar');
-                return;
+        
+        $("#btnAgregarAmigo").on("click", function() {
+            const nick = $("#inputBuscarAmigo").val();
+            if (nick) {
+                cw.agregarAmigo(nick);
+            } else {
+                cw.mostrarMensaje("Introduce un nick para buscar.");
             }
-            $.getJSON('/usuarioActivo/' + encodeURIComponent(nick), function (data) {
-                $("#opsResult").text('usuarioActivo("' + nick + '") -> ' + JSON.stringify(data));
-            }).fail(function () {
-                $("#opsResult").text('Error al comprobar usuario activo');
-            });
         });
-
-        $("#btnEliminarUsuario").on('click', () => {
-            const nick = $("#nickEliminar").val();
-            if (!nick) {
-                $("#opsResult").text('Introduce un nick a eliminar');
-                return;
-            }
-            $.getJSON('/eliminarUsuario/' + encodeURIComponent(nick), function (data) {
-                $("#opsResult").text('eliminarUsuario("' + nick + '") -> ' + JSON.stringify(data));
-            }).fail(function () {
-                $("#opsResult").text('Error al eliminar usuario');
-            });
-        });
-    };
-
-
-    this.mostrarEsperandoRival = function() {
-        this.limpiar();
-        // Mostrar animación o mensaje de esperando rival
-        // Usamos un spinner de Bootstrap
-        let cadena = '<div id="mER" class="text-center mt-5">';
-        cadena += '<h3>Esperando rival...</h3>';
-        cadena += '<div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div>';
-        if (ws.codigo) {
-            cadena += '<p class="mt-3">Código de partida: <strong>' + ws.codigo + '</strong></p>';
+        
+        // Solicitar lista de partidas
+        if (ws && ws.socket) {
+            ws.socket.emit("obtenerPartidas");
         }
-        cadena += '<button id="btnCancelarPartida" class="btn btn-danger mt-3">Cancelar Partida</button>';
-        cadena += '</div>';
-        $('#au').append(cadena);
-
-        $("#btnCancelarPartida").on("click", function() {
-            ws.salirPartida();
-        });
     }
 
-    this.mostrarListaPartidas = function (lista) {
-        $("#listaPartidas").empty();
-        if (lista.length === 0) {
-            $("#listaPartidas").append('<div class="list-group-item">No hay partidas disponibles</div>');
+    // ==========================================
+    // GESTIÓN DE AMIGOS
+    // ==========================================
+    
+    this.amigos = [];
+    
+    this.agregarAmigo = function(nick) {
+        // Verificar si el usuario existe
+        $.getJSON('/usuarioActivo/' + encodeURIComponent(nick), function(data) {
+            if (data && data.activo) {
+                if (!cw.amigos.includes(nick)) {
+                    cw.amigos.push(nick);
+                    cw.actualizarListaAmigos();
+                    cw.mostrarMensaje(`✅ ${nick} añadido a tu lista de amigos`);
+                    $("#inputBuscarAmigo").val('');
+                } else {
+                    cw.mostrarMensaje("Este usuario ya está en tu lista de amigos.");
+                }
+            } else {
+                cw.mostrarMensaje("Usuario no encontrado o no activo.");
+            }
+        }).fail(function() {
+            cw.mostrarMensaje("Error al buscar usuario.");
+        });
+    }
+    
+    this.eliminarAmigo = function(nick) {
+        cw.amigos = cw.amigos.filter(a => a !== nick);
+        cw.actualizarListaAmigos();
+        cw.mostrarMensaje(`${nick} eliminado de tu lista de amigos`);
+    }
+    
+    this.actualizarListaAmigos = function() {
+        const container = $("#listaAmigos");
+        
+        if (this.amigos.length === 0) {
+            container.html('<p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">No tienes amigos agregados aún</p>');
             return;
         }
         
-        lista.forEach(function(partida) {
-            let item = $('<a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"></a>');
-            item.append('<span>Partida <strong>' + partida.codigo + '</strong> (Creador: ' + partida.email + ')</span>');
-            let btn = $('<button class="btn btn-sm btn-success">Unirse</button>');
-            
-            btn.on("click", function(e) {
-                e.preventDefault();
-                let nick = $.cookie("nick");
-                if (nick) {
-                    if (typeof ws !== 'undefined' && !ws.email) ws.email = nick;
-                    ws.unirAPartida(partida.codigo);
-                } else {
-                    cw.mostrarModal("Debes iniciar sesión.");
-                }
-            });
-            
-            item.append(btn);
-            $("#listaPartidas").append(item);
+        let html = '';
+        this.amigos.forEach(function(amigo) {
+            html += `
+                <div class="friend-item">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="friend-status"></div>
+                        <span class="friend-name">${amigo}</span>
+                    </div>
+                    <button class="btn-remove" onclick="cw.eliminarAmigo('${amigo}')">Eliminar</button>
+                </div>
+            `;
         });
+        
+        container.html(html);
+    }
+
+    // ==========================================
+    // LISTA DE PARTIDAS (MULTIJUGADOR)
+    // ==========================================
+    
+    this.mostrarListaPartidas = function (lista) {
+        const container = $("#listaPartidas");
+        
+        if (!lista || lista.length === 0) {
+            container.html('<p style="color: rgba(255,255,255,0.5); text-align: center; padding: 20px;">No hay partidas disponibles</p>');
+            return;
+        }
+        
+        let html = '';
+        lista.forEach(function(partida) {
+            html += `
+                <div class="match-item">
+                    <div class="match-info">
+                        <span class="match-code">🎮 ${partida.codigo}</span>
+                        <span class="match-host">Creador: ${partida.email}</span>
+                    </div>
+                    <button class="btn-join-match" onclick="ws.unirAPartida('${partida.codigo}')">Unirse</button>
+                </div>
+            `;
+        });
+        
+        container.html(html);
+    }
+
+    // ==========================================
+    // PANTALLA DE ESPERA
+    // ==========================================
+    
+    this.mostrarEsperandoRival = function() {
+        this.limpiar();
+        
+        const waiting = `
+            <div class="game-panel">
+                <div class="waiting-screen">
+                    <h3 class="waiting-title">⏳ Esperando Rival...</h3>
+                    <div class="spinner"></div>
+                    <div class="waiting-code">${ws.codigo || '???'}</div>
+                    <p style="color: var(--color-plata);">Comparte este código con tu rival</p>
+                    <button class="menu-btn btn-exit" id="btnCancelarPartida" style="margin-top: 20px; padding: 12px 30px;">
+                        ❌ Cancelar Partida
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        $("#au").html(waiting);
+        
+        $("#btnCancelarPartida").on("click", function() {
+            ws.salirPartida();
+            cw.mostrarPanelMultijugador();
+        });
+    }
+
+    // ==========================================
+    // PREPARACIÓN DE PARTIDA (placeholder)
+    // ==========================================
+    
+    this.mostrarPreparacionPartida = function(modo, dificultad) {
+        this.limpiar();
+        
+        let titulo = modo === 'ia' ? `🤖 vs IA (${dificultad})` : '👥 Multijugador';
+        
+        const prep = `
+            <div class="game-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">${titulo}</h2>
+                    <button class="btn-back" id="btnVolverPrep">← Volver</button>
+                </div>
+                <div style="text-align: center; padding: 40px;">
+                    <h3 style="color: var(--color-oro);">🚢 ¡Partida Lista!</h3>
+                    <p style="color: var(--color-plata); margin: 20px 0;">
+                        El tablero de juego se implementará en el siguiente sprint.
+                    </p>
+                    <div class="domain-icons" style="margin: 30px 0;">
+                        <div class="domain-icon air">✈️</div>
+                        <div class="domain-icon sea">🚢</div>
+                        <div class="domain-icon land">🎖️</div>
+                    </div>
+                    <p style="color: var(--color-texto);">
+                        Prepárate para el combate en tierra, mar y aire
+                    </p>
+                </div>
+            </div>
+        `;
+        
+        $("#au").html(prep);
+        
+        $("#btnVolverPrep").on("click", function() {
+            if (modo === 'ia') {
+                cw.mostrarPanelUnJugador();
+            } else {
+                cw.mostrarPanelMultijugador();
+            }
+        });
+    }
+
+    // ==========================================
+    // CALLBACKS DE WEBSOCKET
+    // ==========================================
+    
+    // Se llama cuando un jugador se une a nuestra partida
+    this.jugadorUnido = function(datos) {
+        this.mostrarMensaje(`🎮 ¡${datos.email} se ha unido a tu partida!`);
+        this.mostrarPreparacionPartida('multi', null);
+    }
+    
+    // Se llama cuando nos unimos exitosamente a una partida
+    this.unidoAPartida = function(datos) {
+        this.mostrarMensaje(`✅ Te has unido a la partida ${datos.codigo}`);
+        this.mostrarPreparacionPartida('multi', null);
     }
 
     window.ControlWeb = ControlWeb;

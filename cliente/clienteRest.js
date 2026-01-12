@@ -130,18 +130,17 @@ function ClienteRest() {
 			data: JSON.stringify({"email":email,"password":password}),
 			success:function(data){
 				if (data.nick!=-1){
-				console.log("Usuario "+data.nick+" ha sido registrado");	
+				console.log("Usuario "+data.nick+" ha iniciado sesión");	
 				$.cookie("nick",data.nick);
 				cw.limpiar();
-				cw.mostrarMensaje("Bienvenido al sistema,"+data.nick);
 				ws.email = data.nick; // Asignar email al cliente WS
-				cw.mostrarPanelOps();
+				cw.mostrarBarraUsuario(data.nick);
+				cw.mostrarMenuPrincipal();
 				}
 				else{
 					console.log("No se pudo iniciar sesión");
-					cw.mostrarModal("No se pudo iniciar sesión");
+					cw.mostrarModal("No se pudo iniciar sesión. Verifica tus credenciales.");
 					cw.mostrarLogin();
-					//cw.mostrarMensajeLogin("No se pudo iniciarsesión");
 				}
 			},
 			error:function(xhr, textStatus, errorThrown){
@@ -161,15 +160,21 @@ function ClienteRest() {
 				try {
 					if (typeof cw !== 'undefined') {
 						cw.limpiar();
-						cw.mostrarRegistro();
-						$('#msg').html('<div class="alert alert-success">Sesión cerrada.</div>');
+						cw.ocultarBarraUsuario();
+						cw.mostrarLogin();
 					}
 				} catch(_){ }
 			})
 			.fail(function(){
 				console.log('Error cerrando sesión en servidor');
 				$.removeCookie('nick');
-				try { if (typeof cw !== 'undefined') { cw.limpiar(); cw.mostrarRegistro(); $('#msg').html('<div class="alert alert-danger">Error cerrando sesión en servidor.</div>'); } } catch(_){ }
+				try { 
+					if (typeof cw !== 'undefined') { 
+						cw.limpiar(); 
+						cw.ocultarBarraUsuario();
+						cw.mostrarLogin(); 
+					} 
+				} catch(_){ }
 			});
 	}
 }
