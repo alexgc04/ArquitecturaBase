@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bgTierra" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB"/>
+      <stop offset="30%" style="stop-color:#4A90A4"/>
+      <stop offset="50%" style="stop-color:#5D4E37"/>
+      <stop offset="100%" style="stop-color:#3D2E1F"/>
+    </linearGradient>
+    <pattern id="grass" patternUnits="userSpaceOnUse" width="100" height="100">
+      <rect width="100" height="100" fill="#3D5E3A"/>
+      <circle cx="20" cy="80" r="15" fill="#2D4A2B"/>
+      <circle cx="70" cy="60" r="20" fill="#4A7A45"/>
+      <circle cx="50" cy="90" r="10" fill="#2D4A2B"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bgTierra)"/>
+  <rect y="600" width="100%" height="480" fill="url(#grass)" opacity="0.3"/>
+  <!-- Montañas -->
+  <polygon points="0,600 300,300 600,600" fill="#5D4E37" opacity="0.5"/>
+  <polygon points="400,600 700,250 1000,600" fill="#4A3F30" opacity="0.6"/>
+  <polygon points="900,600 1200,350 1500,600" fill="#5D4E37" opacity="0.5"/>
+  <polygon points="1300,600 1600,280 1920,600" fill="#4A3F30" opacity="0.6"/>
+  <!-- Tanques -->
+  <text x="300" y="700" font-size="60" opacity="0.3">🛡️</text>
+  <text x="800" y="750" font-size="80" opacity="0.2">🪖</text>
+  <text x="1400" y="680" font-size="70" opacity="0.25">💥</text>
+</svg>

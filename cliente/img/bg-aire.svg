@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bgAire" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB"/>
+      <stop offset="50%" style="stop-color:#4A90A4"/>
+      <stop offset="100%" style="stop-color:#1E3A5F"/>
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bgAire)"/>
+  <!-- Nubes -->
+  <ellipse cx="200" cy="150" rx="150" ry="60" fill="rgba(255,255,255,0.4)" filter="url(#blur)"/>
+  <ellipse cx="300" cy="180" rx="100" ry="40" fill="rgba(255,255,255,0.3)" filter="url(#blur)"/>
+  <ellipse cx="800" cy="100" rx="200" ry="80" fill="rgba(255,255,255,0.35)" filter="url(#blur)"/>
+  <ellipse cx="900" cy="150" rx="120" ry="50" fill="rgba(255,255,255,0.25)" filter="url(#blur)"/>
+  <ellipse cx="1400" cy="200" rx="180" ry="70" fill="rgba(255,255,255,0.4)" filter="url(#blur)"/>
+  <ellipse cx="1550" cy="170" rx="130" ry="55" fill="rgba(255,255,255,0.3)" filter="url(#blur)"/>
+  <ellipse cx="500" cy="350" rx="160" ry="65" fill="rgba(255,255,255,0.2)" filter="url(#blur)"/>
+  <ellipse cx="1100" cy="400" rx="200" ry="75" fill="rgba(255,255,255,0.25)" filter="url(#blur)"/>
+  <ellipse cx="1700" cy="450" rx="140" ry="55" fill="rgba(255,255,255,0.2)" filter="url(#blur)"/>
+  <!-- Aviones -->
+  <text x="350" y="250" font-size="60" opacity="0.3">✈️</text>
+  <text x="1000" y="300" font-size="80" opacity="0.2">🦅</text>
+  <text x="1600" y="350" font-size="50" opacity="0.25">☁️</text>
+  <text x="700" y="500" font-size="70" opacity="0.15">🚁</text>
+</svg>

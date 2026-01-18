@@ -16,12 +16,28 @@
         /* Estilos adicionales para z-index */
         .modal { z-index: 5000 !important; }
         .modal-backdrop { z-index: 4500 !important; }
-        /* Google One Tap styling */
+        /* Google One Tap styling - posición mejorada */
         .google-signin-container {
             position: fixed;
-            top: 80px;
+            top: 15px;
             right: 20px;
             z-index: 1000;
+            background: rgba(13, 27, 42, 0.95);
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+        .google-signin-container::before {
+            content: '🎖️ Iniciar sesión';
+            display: block;
+            color: #FFD700;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            text-align: center;
         }
     </style>
 
@@ -41,13 +57,90 @@
         <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
     </div>
 
-    <!-- Barra de usuario (se muestra cuando está logueado) -->
-    <div id="userBar" class="user-bar" style="display: none;">
-        <div class="user-info">
-            <div class="user-avatar" id="userAvatar">?</div>
-            <span class="user-name" id="userName">Usuario</span>
+    <!-- Panel de Clasificación (se muestra cuando está logueado) -->
+    <div id="rankingPanel" class="ranking-panel-container" style="display: none;">
+        <div class="ranking-toggle" id="rankingToggleBtn">
+            <span class="ranking-toggle-icon">🏆</span>
+            <span class="ranking-toggle-text">Ligas</span>
         </div>
-        <button id="btnUserLogout" class="btn-back">Cerrar Sesión</button>
+        <div class="ranking-dropdown" id="rankingDropdown">
+            <div class="ranking-header">
+                <h4>📊 Clasificación de Ligas</h4>
+            </div>
+            <div class="ranking-list" id="rankingList">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Icono de Perfil (se muestra cuando está logueado) -->
+    <div id="profileIcon" class="profile-icon-container" style="display: none;">
+        <div class="profile-icon" id="profileIconBtn">
+            <span id="profileInitial">?</span>
+        </div>
+        <!-- Dropdown del perfil -->
+        <div class="profile-dropdown" id="profileDropdown">
+            <div class="profile-header-new">
+                <div class="profile-avatar-large" id="profileAvatarLarge">?</div>
+                <div class="profile-info-new">
+                    <div class="profile-name-row">
+                        <span class="profile-name" id="profileName">Comandante</span>
+                        <div class="profile-rank-badge" id="profileRankBadge">
+                            <span class="rank-shield" id="rankShield">⚔️</span>
+                            <span class="rank-name-small" id="rankNameSmall">Recluta I</span>
+                        </div>
+                    </div>
+                    <div class="profile-trophies">
+                        <span id="profileTrophies">0</span> 🏆 Copas
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-section-title">📊 Estadísticas de Combate</div>
+            <div class="profile-battle-stats">
+                <div class="battle-stat victories">
+                    <span class="battle-stat-value" id="statVictorias">0</span>
+                    <span class="battle-stat-label">Victorias</span>
+                </div>
+                <div class="battle-stat draws">
+                    <span class="battle-stat-value" id="statEmpates">0</span>
+                    <span class="battle-stat-label">Empates</span>
+                </div>
+                <div class="battle-stat defeats">
+                    <span class="battle-stat-value" id="statDerrotas">0</span>
+                    <span class="battle-stat-label">Derrotas</span>
+                </div>
+                <div class="battle-stat winrate">
+                    <span class="battle-stat-value" id="statWinrate">0%</span>
+                    <span class="battle-stat-label">% Victoria</span>
+                </div>
+            </div>
+
+            <div class="profile-resources">
+                <div class="resource-box gold">
+                    <span class="resource-icon">💰</span>
+                    <span class="resource-value" id="statMonedas">1000</span>
+                    <span class="resource-name">Oro</span>
+                </div>
+                <div class="resource-box diamonds">
+                    <span class="resource-icon">💎</span>
+                    <span class="resource-value" id="statDiamantes">50</span>
+                    <span class="resource-name">Diamantes</span>
+                </div>
+            </div>
+
+            <div class="profile-section-title">⭐ Nivel de Comandante</div>
+            <div class="profile-level-section">
+                <div class="level-info">
+                    <span class="level-number">Nv. <span id="playerLevel">1</span></span>
+                    <span class="level-xp"><span id="playerXP">0</span> / <span id="playerXPMax">100</span> XP</span>
+                </div>
+                <div class="xp-bar">
+                    <div class="xp-fill" id="xpFill" style="width: 0%"></div>
+                </div>
+                <button class="btn-level-rewards" id="btnLevelRewards">🎁 Ver Recompensas</button>
+            </div>
+        </div>
     </div>
 
     <!-- Contenedor principal del juego -->
@@ -57,11 +150,11 @@
             <h1 class="game-logo">Strike Command</h1>
             <p class="game-subtitle">Dominio Total</p>
             
-            <!-- Iconos de dominio -->
+            <!-- Iconos de dominio (clickeables) -->
             <div class="domain-icons">
-                <div class="domain-icon air" title="Dominio Aéreo">✈️</div>
-                <div class="domain-icon sea" title="Dominio Naval">🚢</div>
-                <div class="domain-icon land" title="Dominio Terrestre">🎖️</div>
+                <div class="domain-icon air" id="btnDominioAire" title="Dominio Aéreo">✈️</div>
+                <div class="domain-icon sea" id="btnDominioMar" title="Dominio Naval">🚢</div>
+                <div class="domain-icon land" id="btnDominioTierra" title="Dominio Terrestre">🎖️</div>
             </div>
         </div>
 
@@ -100,10 +193,53 @@
         // Inicialización de la interfaz: preguntar al servidor si hay sesión
         cw.comprobarSesion();
 
-        // Handler para el botón de logout en la barra superior
-        $("#btnUserLogout").on("click", function(e) {
+        // Toggle del dropdown del perfil
+        $("#profileIconBtn").on("click", function(e) {
+            e.stopPropagation();
+            $("#profileDropdown").toggleClass("show");
+            $("#rankingDropdown").removeClass("show");
+        });
+
+        // Toggle del panel de clasificación
+        $("#rankingToggleBtn").on("click", function(e) {
+            e.stopPropagation();
+            $("#rankingDropdown").toggleClass("show");
+            $("#profileDropdown").removeClass("show");
+        });
+
+        // Cerrar dropdowns al hacer click fuera
+        $(document).on("click", function(e) {
+            if (!$(e.target).closest("#profileIcon").length) {
+                $("#profileDropdown").removeClass("show");
+            }
+            if (!$(e.target).closest("#rankingPanel").length) {
+                $("#rankingDropdown").removeClass("show");
+            }
+        });
+
+        // Handler del botón ver recompensas por nivel
+        $("#btnLevelRewards").on("click", function(e) {
             e.preventDefault();
-            cw.salir();
+            cw.mostrarRecompensasNivel();
+        });
+
+        // Handlers para los iconos de dominio
+        $("#btnDominioAire").on("click", function() {
+            if ($.cookie('nick')) {
+                cw.mostrarMenuDominio('aire');
+            }
+        });
+
+        $("#btnDominioMar").on("click", function() {
+            if ($.cookie('nick')) {
+                cw.mostrarMenuDominio('mar');
+            }
+        });
+
+        $("#btnDominioTierra").on("click", function() {
+            if ($.cookie('nick')) {
+                cw.mostrarMenuDominio('tierra');
+            }
         });
     </script>
 </body>

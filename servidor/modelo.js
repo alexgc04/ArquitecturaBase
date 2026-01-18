@@ -80,6 +80,14 @@ function Sistema() {
         }
         return lista;
     }
+    
+    this.obtenerPartida = function (codigo) {
+        if (this.partidas[codigo]) {
+            // Devolver la referencia real a la partida para poder modificarla
+            return this.partidas[codigo];
+        }
+        return null;
+    }
 
     this.salirPartida = function (codigo, email) {
         if (this.partidas[codigo]) {
