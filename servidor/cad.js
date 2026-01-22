@@ -147,5 +147,90 @@ function CAD(){
 			}
 		});
 	}
+
+    // ==========================================
+    // FUNCIONES ADICIONALES PARA SISTEMA DE PARTIDAS
+    // ==========================================
+    
+    // Actualizar usuario por email (sin necesitar _id)
+    this.actualizarUsuarioPorEmail = function(obj, callback) {
+        let cad = this;
+        const email = obj.email;
+        delete obj.email; // No incluir email en $set
+        
+        this.usuarios.findOneAndUpdate(
+            { email: email },
+            { $set: obj },
+            { upsert: false, returnDocument: "after" },
+            function(err, doc) {
+                if (err) {
+                    console.error("Error actualizando usuario:", err);
+                    callback({ error: err.message });
+                } else if (doc && doc.value) {
+                    console.log("Usuario actualizado:", email);
+                    callback(doc.value);
+                } else {
+                    callback({ error: "Usuario no encontrado" });
+                }
+            }
+        );
+    }
+    
+    // Incrementar campos numéricos de usuario
+    this.incrementarCamposUsuario = function(email, incrementos, callback) {
+        this.usuarios.findOneAndUpdate(
+            { email: email },
+            { $inc: incrementos },
+            { upsert: false, returnDocument: "after" },
+            function(err, doc) {
+                if (err) {
+                    console.error("Error incrementando campos:", err);
+                    callback({ error: err.message });
+                } else if (doc && doc.value) {
+                    callback(doc.value);
+                } else {
+                    callback({ error: "Usuario no encontrado" });
+                }
+            }
+        );
+    }
+    
+    // Obtener ranking por copas
+    this.obtenerRankingCopas = function(limite, callback) {
+        this.usuarios.find({ copas: { $exists: true } })
+            .sort({ copas: -1 })
+            .limit(limite || 100)
+            .toArray(function(err, result) {
+                if (err) {
+                    callback([]);
+                } else {
+                    callback(result.map((u, i) => ({
+                        posicion: i + 1,
+                        email: u.email,
+                        nick: u.nick || u.email,
+                        copas: u.copas || 0,
+                        nivel: u.nivel || 1,
+                        victorias: u.victorias || 0
+                    })));
+                }
+            });
+    }
+    
+    // Guardar estadísticas de partida
+    this.guardarEstadisticasPartida = function(estadisticas, callback) {
+        if (!this.partidasHistorial) {
+            // Crear colección si no existe
+            this.partidasHistorial = this.usuarios.s.db.collection("partidasHistorial");
+        }
+        
+        this.partidasHistorial.insertOne(estadisticas, function(err, result) {
+            if (err) {
+                console.error("Error guardando estadísticas:", err);
+                callback({ error: err.message });
+            } else {
+                callback({ insertado: true, id: result.insertedId });
+            }
+        });
+    }
 }
 module.exports.CAD = CAD;

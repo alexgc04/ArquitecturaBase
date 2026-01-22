@@ -63,6 +63,10 @@
             <span class="ranking-toggle-icon">🏆</span>
             <span class="ranking-toggle-text">Ligas</span>
         </div>
+        <div class="ranking-toggle torneos-toggle" id="torneosToggleBtn">
+            <span class="ranking-toggle-icon">🌍</span>
+            <span class="ranking-toggle-text">Torneos</span>
+        </div>
         <div class="ranking-dropdown" id="rankingDropdown">
             <div class="ranking-header">
                 <h4>📊 Clasificación de Ligas</h4>
@@ -97,22 +101,46 @@
             </div>
             
             <div class="profile-section-title">📊 Estadísticas de Combate</div>
+            
+            <!-- Stats Multijugador -->
+            <div class="profile-subsection-title">👥 Multijugador (1v1)</div>
             <div class="profile-battle-stats">
                 <div class="battle-stat victories">
-                    <span class="battle-stat-value" id="statVictorias">0</span>
+                    <span class="battle-stat-value" id="statVictoriasMulti">0</span>
                     <span class="battle-stat-label">Victorias</span>
                 </div>
-                <div class="battle-stat draws">
-                    <span class="battle-stat-value" id="statEmpates">0</span>
-                    <span class="battle-stat-label">Empates</span>
+                <div class="battle-stat total">
+                    <span class="battle-stat-value" id="statPartidasMulti">0</span>
+                    <span class="battle-stat-label">Partidas</span>
                 </div>
                 <div class="battle-stat defeats">
-                    <span class="battle-stat-value" id="statDerrotas">0</span>
+                    <span class="battle-stat-value" id="statDerrotasMulti">0</span>
                     <span class="battle-stat-label">Derrotas</span>
                 </div>
                 <div class="battle-stat winrate">
-                    <span class="battle-stat-value" id="statWinrate">0%</span>
+                    <span class="battle-stat-value" id="statWinrateMulti">0%</span>
                     <span class="battle-stat-label">% Victoria</span>
+                </div>
+            </div>
+            
+            <!-- Stats 1 Jugador -->
+            <div class="profile-subsection-title">🤖 1 Jugador (vs IA)</div>
+            <div class="profile-battle-stats">
+                <div class="battle-stat victories">
+                    <span class="battle-stat-value" id="statVictorias1P">0</span>
+                    <span class="battle-stat-label">Victorias</span>
+                </div>
+                <div class="battle-stat defeats">
+                    <span class="battle-stat-value" id="statDerrotas1P">0</span>
+                    <span class="battle-stat-label">Derrotas</span>
+                </div>
+                <div class="battle-stat winrate">
+                    <span class="battle-stat-value" id="statWinrate1P">0%</span>
+                    <span class="battle-stat-label">% Victoria</span>
+                </div>
+                <div class="battle-stat total">
+                    <span class="battle-stat-value" id="statTotal1P">0</span>
+                    <span class="battle-stat-label">Partidas</span>
                 </div>
             </div>
 
@@ -223,22 +251,30 @@
             cw.mostrarRecompensasNivel();
         });
 
-        // Handlers para los iconos de dominio
+        // Handler para Torneos
+        $("#torneosToggleBtn").on("click", function(e) {
+            e.stopPropagation();
+            if ($.cookie('nick')) {
+                cw.mostrarTorneos();
+            }
+        });
+
+        // Handlers para los iconos de dominio (Clanes)
         $("#btnDominioAire").on("click", function() {
             if ($.cookie('nick')) {
-                cw.mostrarMenuDominio('aire');
+                cw.mostrarClanes('aire');
             }
         });
 
         $("#btnDominioMar").on("click", function() {
             if ($.cookie('nick')) {
-                cw.mostrarMenuDominio('mar');
+                cw.mostrarClanes('mar');
             }
         });
 
         $("#btnDominioTierra").on("click", function() {
             if ($.cookie('nick')) {
-                cw.mostrarMenuDominio('tierra');
+                cw.mostrarClanes('tierra');
             }
         });
     </script>
